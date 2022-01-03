@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "update_config"
+      ],
+      "properties": {
+        "update_config": {
+          "type": "object",
+          "properties": {
+            "owner": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "update_vesting_addresses"
+      ],
+      "properties": {
+        "update_vesting_addresses": {
+          "type": "object",
+          "required": [
+            "vesting_addresses"
+          ],
+          "properties": {
+            "vesting_addresses": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "add_vesting_address"
+      ],
+      "properties": {
+        "add_vesting_address": {
+          "type": "object",
+          "required": [
+            "vesting_address"
+          ],
+          "properties": {
+            "vesting_address": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "remove_vesting_address"
+      ],
+      "properties": {
+        "remove_vesting_address": {
+          "type": "object",
+          "required": [
+            "vesting_address"
+          ],
+          "properties": {
+            "vesting_address": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "accept_ownership"
+      ],
+      "properties": {
+        "accept_ownership": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+[package]
+name = "starterra-token"
+version = "2.0.0"
+authors = ["Starterra"]
+edition = "2018"
+description = "Common helpers for other starterra-token specs"
+license = "Apache-2.0"
+#repository = "https://github.com/starterra/app-smart-contracts"
+homepage = "https://starterra.io"
+documentation = "https://docs.starterra.io"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+# for quicker tests, cargo test --lib
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+
+[dependencies]
+cw20 = "0.8.0"
+cw0 = "0.8.0"
+cosmwasm-storage = "0.16.0"
+terra-cosmwasm = "2.2.0"
+cosmwasm-std = "0.16.0"
+schemars = "0.8.1"
+serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+
+[dev-dependencies]
+cosmwasm-schema = { version = "0.16.0"}
+
+[profile.dev]
+overflow-checks = true
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = true
