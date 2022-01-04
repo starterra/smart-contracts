@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CanStakeResponse",
+  "type": "object",
+  "required": [
+    "statuses"
+  ],
+  "properties": {
+    "statuses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/CanStakeStatus"
+      }
+    }
+  },
+  "definitions": {
+    "CanStakeStatus": {
+      "type": "object",
+      "required": [
+        "can_stake",
+        "staking_contract"
+      ],
+      "properties": {
+        "can_stake": {
+          "type": "boolean"
+        },
+        "staking_contract": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

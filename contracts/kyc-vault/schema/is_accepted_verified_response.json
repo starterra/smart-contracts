@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IsAcceptedVerifiedResponse",
+  "type": "object",
+  "required": [
+    "address",
+    "is_accepted",
+    "is_verified"
+  ],
+  "properties": {
+    "address": {
+      "type": "string"
+    },
+    "is_accepted": {
+      "type": "boolean"
+    },
+    "is_verified": {
+      "type": "boolean"
+    }
+  }
+}

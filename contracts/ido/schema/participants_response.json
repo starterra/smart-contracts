@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ParticipantsResponse",
+  "type": "object",
+  "required": [
+    "users"
+  ],
+  "properties": {
+    "users": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

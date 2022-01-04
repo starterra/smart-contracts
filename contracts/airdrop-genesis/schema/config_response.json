@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConfigResponse",
+  "type": "object",
+  "required": [
+    "ido_addresses",
+    "lp_staking_addresses",
+    "owner",
+    "starterra_token",
+    "stt_staking_addresses"
+  ],
+  "properties": {
+    "ido_addresses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lp_staking_addresses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "owner": {
+      "type": "string"
+    },
+    "starterra_token": {
+      "type": "string"
+    },
+    "stt_staking_addresses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

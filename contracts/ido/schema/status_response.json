@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StatusResponse",
+  "type": "object",
+  "required": [
+    "is_closed",
+    "is_paused"
+  ],
+  "properties": {
+    "is_closed": {
+      "type": "boolean"
+    },
+    "is_paused": {
+      "type": "boolean"
+    },
+    "snapshot_time": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint64",
+      "minimum": 0.0
+    }
+  }
+}
