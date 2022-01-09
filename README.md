@@ -8,12 +8,12 @@ You can find more information about the architecture, usage and function of the 
 
 | Contract                       | Reference | Description | 
 |--------------------------------| --------- | ------------|
-| [`cw20`](README.md)            | [doc](https://docs.starterra.io/technology/smart-contracts/token-contract) | StarTerra token (CW20). |
-| [`airdrop-genesis`](README.md) | [doc](https://docs.starterra.io/technology/smart-contracts/airdrop-genesis) | Contract to perform genesis airdrop for community.         |
-| [`kyc-vault`](README.md)       | [doc](https://docs.starterra.io/technology/smart-contracts/kyc-vault) | Onchain vault to store data related to KYC and terms of use . |
-| [`staking-gateway`](README.md) | [doc](https://docs.starterra.io/technology/smart-contracts/staking-gateway)  | Returns the staking pool address which caller belongs to. |
-| [`vesting-gateway`](README.md) | [doc](https://docs.starterra.io/technology/smart-contracts/vesting-gateway) | Returns the vesting contract address which caller belongs to.|
-| [`ido`](README.md)             | [doc](https://docs.starterra.io/technology/smart-contracts/ido)  | Contract to verify if caller is eligable for joining IDO. |
+| [`cw20`](./contracts/cw20)            | [doc](https://docs.starterra.io/technology/smart-contracts/token-contract) | StarTerra token (CW20). |
+| [`airdrop-genesis`](./contracts/airdrop-genesis) | [doc](https://docs.starterra.io/technology/smart-contracts/airdrop-genesis) | Contract to perform genesis airdrop for community.         |
+| [`kyc-vault`](./contracts/kyc-vault)       | [doc](https://docs.starterra.io/technology/smart-contracts/kyc-vault) | Onchain vault to store data related to KYC and terms of use . |
+| [`staking-gateway`](./contracts/staking-gateway) | [doc](https://docs.starterra.io/technology/smart-contracts/staking-gateway)  | Returns the staking pool address which caller belongs to. |
+| [`vesting-gateway`](./contracts/vesting-gateway) | [doc](https://docs.starterra.io/technology/smart-contracts/vesting-gateway) | Returns the vesting contract address which caller belongs to.|
+| [`ido`](./contracts/ido)             | [doc](https://docs.starterra.io/technology/smart-contracts/ido)  | Contract to verify if caller is eligable for joining IDO. |
 
 ## Development
 
