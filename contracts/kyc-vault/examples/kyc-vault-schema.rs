@@ -3,7 +3,10 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use starterra_token::kyc_vault::{QueryMsg, IsVerifiedResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, IsAcceptedVerifiedResponse, IsAcceptedResponse};
+use starterra_token::kyc_vault::{
+    ConfigResponse, ExecuteMsg, InstantiateMsg, IsAcceptedResponse, IsAcceptedVerifiedResponse,
+    IsVerifiedResponse, QueryMsg,
+};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

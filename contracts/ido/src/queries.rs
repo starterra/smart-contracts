@@ -1,17 +1,23 @@
-use cosmwasm_std::{StdResult, Deps, Env};
-use crate::state::{read_config, read_state, read_participant, read_participants};
-use starterra_token::ido::{ConfigResponse, StateResponse, StatusResponse, ParticipantResponse, ParticipantsResponse};
+use crate::state::{read_config, read_participant, read_participants, read_state};
+use cosmwasm_std::{Deps, Env, StdResult};
+use starterra_token::common::{convert_raw_to_human, OrderBy};
+use starterra_token::ido::{
+    ConfigResponse, ParticipantResponse, ParticipantsResponse, StateResponse, StatusResponse,
+};
 use std::borrow::Borrow;
-use starterra_token::common::{OrderBy, convert_raw_to_human};
 
-pub fn query_config(
-    deps: Deps,
-) -> StdResult<ConfigResponse> {
+pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let state = read_config(deps.storage)?;
     Ok(ConfigResponse {
         owner: deps.api.addr_humanize(&state.owner)?.into_string(),
-        prefund_address: deps.api.addr_humanize(&state.prefund_address)?.into_string(),
-        kyc_terms_vault_address: deps.api.addr_humanize(&state.kyc_terms_vault_address)?.into_string(),
+        prefund_address: deps
+            .api
+            .addr_humanize(&state.prefund_address)?
+            .into_string(),
+        kyc_terms_vault_address: deps
+            .api
+            .addr_humanize(&state.kyc_terms_vault_address)?
+            .into_string(),
         ido_token: deps.api.addr_humanize(&state.ido_token)?.into_string(),
         ido_token_price: state.ido_token_price,
         end_date: state.end_date,
@@ -21,30 +27,19 @@ pub fn query_config(
     })
 }
 
-pub fn query_ido_state(
-    deps: Deps,
-) -> StdResult<StateResponse> {
+pub fn query_ido_state(deps: Deps) -> StdResult<StateResponse> {
     let state = read_state(deps.storage)?;
     Ok(StateResponse {
         number_of_participants: state.number_of_participants,
     })
 }
 
-pub fn query_participant(
-    deps: Deps,
-    address: String,
-) -> StdResult<ParticipantResponse> {
+pub fn query_participant(deps: Deps, address: String) -> StdResult<ParticipantResponse> {
     let user_raw = deps.api.addr_canonicalize(&address)?;
     let participant = read_participant(deps.storage.borrow(), &user_raw);
     match participant {
-        Ok(res) => {
-            Ok(res)
-        }
-        _ => {
-            Ok(ParticipantResponse {
-                is_joined: false,
-            })
-        }
+        Ok(res) => Ok(res),
+        _ => Ok(ParticipantResponse { is_joined: false }),
     }
 }
 
@@ -62,13 +57,11 @@ pub fn query_ido_status(
     })
 }
 
-pub fn query_snapshot_time(
-    deps: Deps,
-) -> StdResult<Option<u64>> {
+pub fn query_snapshot_time(deps: Deps) -> StdResult<Option<u64>> {
     let state = read_config(deps.storage)?;
     match state.snapshot_time {
         Some(s) => Ok(Some(s)),
-        None => Ok(None)
+        None => Ok(None),
     }
 }
 
@@ -89,5 +82,7 @@ pub fn query_participants(
         read_participants(deps.storage, None, limit, order_by)?
     };
 
-    return Ok(ParticipantsResponse { users: convert_raw_to_human(deps, &users)? });
+    return Ok(ParticipantsResponse {
+        users: convert_raw_to_human(deps, &users)?,
+    });
 }

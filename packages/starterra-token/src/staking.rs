@@ -33,7 +33,7 @@ pub enum ExecuteMsg {
         amount: Uint128,
     },
     MoveBond {
-        destination_contract: String
+        destination_contract: String,
     },
     /// Withdraw pending rewards
     Withdraw {},

@@ -3,7 +3,10 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use starterra_token::ido::{ExecuteMsg, InstantiateMsg, QueryMsg, ConfigResponse, ParticipantInfoResponse, AllocationInfo, StateResponse, StatusResponse, ParticipantsResponse, ParticipantResponse};
+use starterra_token::ido::{
+    AllocationInfo, ConfigResponse, ExecuteMsg, InstantiateMsg, ParticipantInfoResponse,
+    ParticipantResponse, ParticipantsResponse, QueryMsg, StateResponse, StatusResponse,
+};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

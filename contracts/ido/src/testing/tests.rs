@@ -1,7 +1,10 @@
-use cosmwasm_std::{attr, from_binary, Timestamp, Uint128};
 use cosmwasm_std::testing::{mock_env, mock_info};
+use cosmwasm_std::{attr, from_binary, Timestamp, Uint128};
 
-use starterra_token::ido::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse, StatusResponse, ParticipantResponse, ParticipantsResponse};
+use starterra_token::ido::{
+    ConfigResponse, ExecuteMsg, InstantiateMsg, ParticipantResponse, ParticipantsResponse,
+    QueryMsg, StateResponse, StatusResponse,
+};
 use starterra_token::ido_prefund::FunderInfoResponse;
 
 use crate::contract::{execute, instantiate, query};
@@ -28,7 +31,10 @@ fn proper_instantiate() {
     let _res = instantiate(deps.as_mut(), env, info.clone(), msg).unwrap();
 
     assert_eq!(
-        from_binary::<ConfigResponse>(&query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap()).unwrap(),
+        from_binary::<ConfigResponse>(
+            &query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap()
+        )
+        .unwrap(),
         ConfigResponse {
             owner: String::from("newaddr".to_string()),
             prefund_address: String::from("prefund_addr".to_string()),
@@ -60,10 +66,7 @@ fn instantiate_with_end_date_in_the_past() {
         minimum_prefund: Uint128::from(500u128),
     };
     let res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap_err();
-    assert_eq!(
-        res,
-        ContractError::EndDateInThePast {}
-    )
+    assert_eq!(res, ContractError::EndDateInThePast {})
 }
 
 #[test]
@@ -107,7 +110,10 @@ fn update_config() {
     let _res = execute(deps.as_mut(), env, info.clone(), msg).unwrap();
 
     assert_eq!(
-        from_binary::<ConfigResponse>(&query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap()).unwrap(),
+        from_binary::<ConfigResponse>(
+            &query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap()
+        )
+        .unwrap(),
         ConfigResponse {
             owner: String::from("new_owner".to_string()),
             prefund_address: String::from("prefund_address".to_string()),
@@ -122,7 +128,17 @@ fn update_config() {
     );
 
     assert_eq!(
-        from_binary::<StatusResponse>(&query(deps.as_ref(), mock_env(), QueryMsg::Status { block_time: Some(200001u64) }).unwrap()).unwrap(),
+        from_binary::<StatusResponse>(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::Status {
+                    block_time: Some(200001u64)
+                }
+            )
+            .unwrap()
+        )
+        .unwrap(),
         StatusResponse {
             is_paused: true,
             is_closed: true,
@@ -246,18 +262,15 @@ fn join_ido() {
                 FunderInfoResponse {
                     available_funds: Uint128::from(500u128),
                     spent_funds: Uint128::zero(),
-                }
+                },
             )],
         )],
-        vec![(
-            (
+        vec![
+            ((
                 String::from("kyc_vault_address"),
-                vec![(
-                    String::from("ido_address_1"),
-                    (true, true),
-                )],
-            )
-        )],
+                vec![(String::from("ido_address_1"), (true, true))],
+            )),
+        ],
     );
 
     let msg = InstantiateMsg {
@@ -287,7 +300,6 @@ fn join_ido() {
         _ => panic!("Must return You have to deposit more on prefund contract"),
     }
 
-
     // join ido success
     let msg = ExecuteMsg::JoinIdo {};
     let info2 = mock_info("ido_address_1", &[]);
@@ -297,10 +309,7 @@ fn join_ido() {
 
     assert_eq!(
         res.attributes,
-        vec![
-            attr("action", "join_ido"),
-            attr("address", "ido_address_1"),
-        ]
+        vec![attr("action", "join_ido"), attr("address", "ido_address_1"),]
     );
 
     assert_eq!(
@@ -312,12 +321,10 @@ fn join_ido() {
                     address: String::from("ido_address_1"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
-        ParticipantResponse {
-            is_joined: true,
-        }
+        .unwrap(),
+        ParticipantResponse { is_joined: true }
     );
 
     assert_eq!(
@@ -329,24 +336,17 @@ fn join_ido() {
                     address: String::from("ido_address_2"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
-        ParticipantResponse {
-            is_joined: false,
-        }
+        .unwrap(),
+        ParticipantResponse { is_joined: false }
     );
 
     assert_eq!(
         from_binary::<StateResponse>(
-            &query(
-                deps.as_ref(),
-                mock_env(),
-                QueryMsg::State {},
-            )
-                .unwrap()
+            &query(deps.as_ref(), mock_env(), QueryMsg::State {},).unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         StateResponse {
             number_of_participants: 1,
         }
@@ -365,18 +365,15 @@ fn cant_join_ido_after_end_time() {
                 FunderInfoResponse {
                     available_funds: Uint128::from(100u128),
                     spent_funds: Uint128::zero(),
-                }
+                },
             )],
         )],
-        vec![(
-            (
+        vec![
+            ((
                 String::from("kyc_vault_address"),
-                vec![(
-                    String::from("ido_address_1"),
-                    (true, true),
-                )],
-            )
-        )],
+                vec![(String::from("ido_address_1"), (true, true))],
+            )),
+        ],
     );
 
     let msg = InstantiateMsg {
@@ -405,7 +402,17 @@ fn cant_join_ido_after_end_time() {
     }
 
     assert_eq!(
-        from_binary::<StatusResponse>(&query(deps.as_ref(), mock_env(), QueryMsg::Status { block_time: Some(10u64) }).unwrap()).unwrap(),
+        from_binary::<StatusResponse>(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::Status {
+                    block_time: Some(10u64)
+                }
+            )
+            .unwrap()
+        )
+        .unwrap(),
         StatusResponse {
             is_paused: true,
             is_closed: false,
@@ -441,7 +448,17 @@ fn cant_join_ido_after_end_time() {
     }
 
     assert_eq!(
-        from_binary::<StatusResponse>(&query(deps.as_ref(), mock_env(), QueryMsg::Status { block_time: Some(100001u64) }).unwrap()).unwrap(),
+        from_binary::<StatusResponse>(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::Status {
+                    block_time: Some(100001u64)
+                }
+            )
+            .unwrap()
+        )
+        .unwrap(),
         StatusResponse {
             is_paused: false,
             is_closed: true,
@@ -462,18 +479,15 @@ fn cant_join_ido_second_time() {
                 FunderInfoResponse {
                     available_funds: Uint128::from(500u128),
                     spent_funds: Uint128::zero(),
-                }
+                },
             )],
         )],
-        vec![(
-            (
+        vec![
+            ((
                 String::from("kyc_vault_address"),
-                vec![(
-                    String::from("ido_address_1"),
-                    (true, true),
-                )],
-            )
-        )],
+                vec![(String::from("ido_address_1"), (true, true))],
+            )),
+        ],
     );
 
     let mut env = mock_env();
@@ -531,7 +545,10 @@ fn query_snapshot() {
     let _res = instantiate(deps.as_mut(), env, info.clone(), msg).unwrap();
 
     assert_eq!(
-        from_binary::<Option<u64>>(&query(deps.as_ref(), mock_env(), QueryMsg::SnapshotTime {}).unwrap()).unwrap(),
+        from_binary::<Option<u64>>(
+            &query(deps.as_ref(), mock_env(), QueryMsg::SnapshotTime {}).unwrap()
+        )
+        .unwrap(),
         None
     );
 
@@ -553,7 +570,10 @@ fn query_snapshot() {
     let _res = execute(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
 
     assert_eq!(
-        from_binary::<Option<u64>>(&query(deps.as_ref(), mock_env(), QueryMsg::SnapshotTime {}).unwrap()).unwrap(),
+        from_binary::<Option<u64>>(
+            &query(deps.as_ref(), mock_env(), QueryMsg::SnapshotTime {}).unwrap()
+        )
+        .unwrap(),
         Some(2000000u64)
     );
 
@@ -572,7 +592,10 @@ fn query_snapshot() {
     let _res = execute(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
 
     assert_eq!(
-        from_binary::<Option<u64>>(&query(deps.as_ref(), mock_env(), QueryMsg::SnapshotTime {}).unwrap()).unwrap(),
+        from_binary::<Option<u64>>(
+            &query(deps.as_ref(), mock_env(), QueryMsg::SnapshotTime {}).unwrap()
+        )
+        .unwrap(),
         Some(2000000u64)
     );
 
@@ -605,44 +628,40 @@ fn query_participants() {
     deps.querier.with_account_statuses(
         vec![(
             String::from("prefund_addr"),
-            vec![(
-                     String::from("ido_address_1"),
-                     FunderInfoResponse {
-                         available_funds: Uint128::from(500u128),
-                         spent_funds: Uint128::zero(),
-                     }
-                 ),
-                 (
-                     String::from("ido_address_2"),
-                     FunderInfoResponse {
-                         available_funds: Uint128::from(500u128),
-                         spent_funds: Uint128::zero(),
-                     }
-                 ),
-                 (
-                     String::from("ido_address_3"),
-                     FunderInfoResponse {
-                         available_funds: Uint128::from(500u128),
-                         spent_funds: Uint128::zero(),
-                     }
-                 )],
+            vec![
+                (
+                    String::from("ido_address_1"),
+                    FunderInfoResponse {
+                        available_funds: Uint128::from(500u128),
+                        spent_funds: Uint128::zero(),
+                    },
+                ),
+                (
+                    String::from("ido_address_2"),
+                    FunderInfoResponse {
+                        available_funds: Uint128::from(500u128),
+                        spent_funds: Uint128::zero(),
+                    },
+                ),
+                (
+                    String::from("ido_address_3"),
+                    FunderInfoResponse {
+                        available_funds: Uint128::from(500u128),
+                        spent_funds: Uint128::zero(),
+                    },
+                ),
+            ],
         )],
-        vec![(
-            (
+        vec![
+            ((
                 String::from("kyc_vault_address"),
-                vec![(
-                         String::from("ido_address_1"),
-                         (true, true),
-                     ), (
-                         String::from("ido_address_2"),
-                         (true, true),
-                     ),
-                     (
-                         String::from("ido_address_3"),
-                         (true, true),
-                     )],
-            )
-        )],
+                vec![
+                    (String::from("ido_address_1"), (true, true)),
+                    (String::from("ido_address_2"), (true, true)),
+                    (String::from("ido_address_3"), (true, true)),
+                ],
+            )),
+        ],
     );
 
     let msg = InstantiateMsg {
@@ -688,7 +707,10 @@ fn query_participants() {
     };
     let res = query(deps.as_ref(), mock_env(), msg).unwrap();
     let participants: ParticipantsResponse = from_binary(&res).unwrap();
-    assert_eq!(participants.users, vec!["ido_address_1", "ido_address_2", "ido_address_3"]);
+    assert_eq!(
+        participants.users,
+        vec!["ido_address_1", "ido_address_2", "ido_address_3"]
+    );
 
     //query for participants with limit
     let msg = QueryMsg::Participants {
@@ -710,4 +732,3 @@ fn query_participants() {
     let participants: ParticipantsResponse = from_binary(&res).unwrap();
     assert_eq!(participants.users, vec!["ido_address_3"]);
 }
-

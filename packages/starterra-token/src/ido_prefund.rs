@@ -1,7 +1,7 @@
+use crate::common::OrderBy;
+use cosmwasm_std::Uint128;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use cosmwasm_std::{Uint128};
-use crate::common::OrderBy;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
@@ -25,7 +25,7 @@ pub enum ExecuteMsg {
     },
     Deposit {},
     WithdrawDeposit {
-        amount: Uint128
+        amount: Uint128,
     },
     AcceptOwnership {},
     UpdateConfig {
@@ -46,15 +46,25 @@ pub enum ExecuteMsg {
         minimum_prefund: Option<Uint128>,
         withdrawal_active: Option<bool>,
     },
-    DepositToAnchorByAdmin { amount: Uint128 },
-    WithdrawFromAnchorByAdmin { amount: Uint128 },
+    DepositToAnchorByAdmin {
+        amount: Uint128,
+    },
+    WithdrawFromAnchorByAdmin {
+        amount: Uint128,
+    },
     WithdrawIdoFunds {
         amount: Uint128,
         to: String,
     },
-    WithdrawAnchorUST { amount: Option<Uint128> },
-    DepositAnchorUST { amount: Uint128 },
-    WithdrawUST { amount: Option<Uint128> },
+    WithdrawAnchorUST {
+        amount: Option<Uint128>,
+    },
+    DepositAnchorUST {
+        amount: Uint128,
+    },
+    WithdrawUST {
+        amount: Option<Uint128>,
+    },
     RegisterAdministrator {
         admin: String,
         is_register: bool,

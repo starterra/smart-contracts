@@ -9,18 +9,10 @@ pub struct InstantiateMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    UpdateConfig {
-        owner: Option<String>,
-    },
-    UpdateVestingAddresses {
-        vesting_addresses: Vec<String>,
-    },
-    AddVestingAddress {
-        vesting_address: String,
-    },
-    RemoveVestingAddress {
-        vesting_address: String,
-    },
+    UpdateConfig { owner: Option<String> },
+    UpdateVestingAddresses { vesting_addresses: Vec<String> },
+    AddVestingAddress { vesting_address: String },
+    RemoveVestingAddress { vesting_address: String },
     AcceptOwnership {},
 }
 

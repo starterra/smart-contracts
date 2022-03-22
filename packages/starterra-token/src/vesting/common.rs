@@ -1,8 +1,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::Uint128;
 use crate::vesting::genesis::TollBridgeOptionToClaim;
+use cosmwasm_std::Uint128;
 
 /// CONTRACT: end_time > start_time
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

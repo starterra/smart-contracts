@@ -21,7 +21,10 @@ pub fn read_config(storage: &dyn Storage) -> StdResult<Config> {
     singleton_read(storage, KEY_CONFIG).load()
 }
 
-pub fn store_vesting_addresses(storage: &mut dyn Storage, addresses: &Vec<CanonicalAddr>) -> StdResult<()> {
+pub fn store_vesting_addresses(
+    storage: &mut dyn Storage,
+    addresses: &Vec<CanonicalAddr>,
+) -> StdResult<()> {
     singleton(storage, KEY_VESTING_ADDRESSES).save(addresses)
 }
 
@@ -34,7 +37,9 @@ pub fn store_pending_owner(storage: &mut dyn Storage, new_owner: &CanonicalAddr)
 }
 
 pub fn read_pending_owner(storage: &dyn Storage) -> Option<CanonicalAddr> {
-    singleton_read(storage, KEY_PENDING_OWNER).may_load().unwrap()
+    singleton_read(storage, KEY_PENDING_OWNER)
+        .may_load()
+        .unwrap()
 }
 
 pub fn remove_pending_owner(storage: &mut dyn Storage) {

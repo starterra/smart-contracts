@@ -1,8 +1,11 @@
-use crate::contract::{ query, instantiate, execute};
-use starterra_token::kyc_vault::{ConfigResponse, QueryMsg, IsVerifiedResponse, IsAcceptedResponse, IsAcceptedVerifiedResponse, InstantiateMsg, ExecuteMsg};
-use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-use cosmwasm_std::{from_binary, attr};
+use crate::contract::{execute, instantiate, query};
 use crate::errors::ContractError;
+use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+use cosmwasm_std::{attr, from_binary};
+use starterra_token::kyc_vault::{
+    ConfigResponse, ExecuteMsg, InstantiateMsg, IsAcceptedResponse, IsAcceptedVerifiedResponse,
+    IsVerifiedResponse, QueryMsg,
+};
 
 #[test]
 fn proper_initialization() {
@@ -16,7 +19,10 @@ fn proper_initialization() {
     let _res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
     assert_eq!(
-        from_binary::<ConfigResponse>(&query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap()).unwrap(),
+        from_binary::<ConfigResponse>(
+            &query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap()
+        )
+        .unwrap(),
         ConfigResponse {
             owner: String::from("newaddr"),
             kyc_provider_address: String::from("kyc_provider"),
@@ -48,7 +54,10 @@ fn update_config() {
     let _res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
     assert_eq!(
-        from_binary::<ConfigResponse>(&query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap()).unwrap(),
+        from_binary::<ConfigResponse>(
+            &query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap()
+        )
+        .unwrap(),
         ConfigResponse {
             owner: String::from("owner2"),
             kyc_provider_address: String::from("kyc_provider2"),
@@ -74,14 +83,16 @@ fn update_config() {
     let _res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
     assert_eq!(
-        from_binary::<ConfigResponse>(&query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap()).unwrap(),
+        from_binary::<ConfigResponse>(
+            &query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap()
+        )
+        .unwrap(),
         ConfigResponse {
             owner: String::from("owner2"),
             kyc_provider_address: String::from("kyc_provider3"),
         }
     );
 }
-
 
 #[test]
 fn accept_ownership() {
@@ -105,7 +116,7 @@ fn accept_ownership() {
 
     let msg = ExecuteMsg::UpdateConfig {
         owner: Some(String::from("new_owner")),
-        kyc_provider_address: None
+        kyc_provider_address: None,
     };
     let info = mock_info("owner", &vec![]);
     let env = mock_env();
@@ -149,7 +160,7 @@ fn register_kyc_address() {
         address: String::from("KYC_ADDRESS1"),
     };
     let info = mock_info("wrong_kyc_provider", &[]);
-    let res = execute(deps.as_mut(), mock_env(), info.clone(),msg.clone());
+    let res = execute(deps.as_mut(), mock_env(), info.clone(), msg.clone());
     match res {
         Err(ContractError::Unauthorized {}) => {}
         _ => panic!("DO NOT ENTER HERE"),
@@ -159,7 +170,7 @@ fn register_kyc_address() {
     let res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
     assert_eq!(
-       res.attributes,
+        res.attributes,
         vec![
             attr("action", "register_kyc_address"),
             attr("registered_kyc_address", "KYC_ADDRESS1"),
@@ -169,14 +180,15 @@ fn register_kyc_address() {
     assert_eq!(
         from_binary::<IsVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(),
+                deps.as_ref(),
+                mock_env(),
                 QueryMsg::IsVerified {
                     address: String::from("KYC_ADDRESS1"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsVerifiedResponse {
             address: String::from("KYC_ADDRESS1"),
             is_verified: true,
@@ -186,14 +198,15 @@ fn register_kyc_address() {
     assert_eq!(
         from_binary::<IsVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(),
+                deps.as_ref(),
+                mock_env(),
                 QueryMsg::IsVerified {
                     address: String::from("KYC_ADDRESS2"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsVerifiedResponse {
             address: String::from("KYC_ADDRESS2"),
             is_verified: false,
@@ -214,10 +227,10 @@ fn register_kyc_addresses() {
     let _res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
     let msg = ExecuteMsg::RegisterAddresses {
-        addresses: vec![String::from("KYC_ADDRESS1"), String::from("KYC_ADDRESS2"), ],
+        addresses: vec![String::from("KYC_ADDRESS1"), String::from("KYC_ADDRESS2")],
     };
     let info = mock_info("wrong_kyc_provider", &[]);
-    let res = execute(deps.as_mut(), mock_env(), info.clone(),msg.clone());
+    let res = execute(deps.as_mut(), mock_env(), info.clone(), msg.clone());
     match res {
         Err(ContractError::Unauthorized {}) => {}
         _ => panic!("DO NOT ENTER HERE"),
@@ -227,7 +240,7 @@ fn register_kyc_addresses() {
     let res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
     assert_eq!(
-       res.attributes,
+        res.attributes,
         vec![
             attr("action", "register_kyc_addresses"),
             attr("registered_kyc_addresses", "KYC_ADDRESS1,KYC_ADDRESS2"),
@@ -237,13 +250,15 @@ fn register_kyc_addresses() {
     assert_eq!(
         from_binary::<IsVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsVerified {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsVerified {
                     address: String::from("KYC_ADDRESS1"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsVerifiedResponse {
             address: String::from("KYC_ADDRESS1"),
             is_verified: true,
@@ -252,13 +267,15 @@ fn register_kyc_addresses() {
     assert_eq!(
         from_binary::<IsVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsVerified {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsVerified {
                     address: String::from("KYC_ADDRESS2"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsVerifiedResponse {
             address: String::from("KYC_ADDRESS2"),
             is_verified: true,
@@ -268,13 +285,15 @@ fn register_kyc_addresses() {
     assert_eq!(
         from_binary::<IsVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsVerified {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsVerified {
                     address: String::from("KYC_ADDRESS3"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsVerifiedResponse {
             address: String::from("KYC_ADDRESS3"),
             is_verified: false,
@@ -308,7 +327,7 @@ fn unregister_kyc_address() {
     let res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
     assert_eq!(
-       res.attributes,
+        res.attributes,
         vec![
             attr("action", "register_kyc_address"),
             attr("registered_kyc_address", "KYC_ADDRESS1"),
@@ -318,13 +337,15 @@ fn unregister_kyc_address() {
     assert_eq!(
         from_binary::<IsVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsVerified {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsVerified {
                     address: String::from("KYC_ADDRESS1"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsVerifiedResponse {
             address: String::from("KYC_ADDRESS1"),
             is_verified: true,
@@ -339,7 +360,7 @@ fn unregister_kyc_address() {
     let res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
     assert_eq!(
-       res.attributes,
+        res.attributes,
         vec![
             attr("action", "unregister_kyc_address"),
             attr("unregistered_kyc_address", "KYC_ADDRESS1"),
@@ -349,13 +370,15 @@ fn unregister_kyc_address() {
     assert_eq!(
         from_binary::<IsVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsVerified {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsVerified {
                     address: String::from("KYC_ADDRESS1"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsVerifiedResponse {
             address: String::from("KYC_ADDRESS1"),
             is_verified: false,
@@ -376,11 +399,11 @@ fn unregister_kyc_addresses() {
     let _res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
     let msg = ExecuteMsg::RegisterAddresses {
-        addresses: vec![String::from("KYC_ADDRESS1"), String::from("KYC_ADDRESS2"), ],
+        addresses: vec![String::from("KYC_ADDRESS1"), String::from("KYC_ADDRESS2")],
     };
 
     let info = mock_info("wrong_kyc_provider", &[]);
-    let res = execute(deps.as_mut(), mock_env(), info.clone(),msg.clone());
+    let res = execute(deps.as_mut(), mock_env(), info.clone(), msg.clone());
     match res {
         Err(ContractError::Unauthorized {}) => {}
         _ => panic!("DO NOT ENTER HERE"),
@@ -391,13 +414,15 @@ fn unregister_kyc_addresses() {
     assert_eq!(
         from_binary::<IsVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsVerified {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsVerified {
                     address: String::from("KYC_ADDRESS2"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsVerifiedResponse {
             address: String::from("KYC_ADDRESS2"),
             is_verified: true,
@@ -419,17 +444,18 @@ fn unregister_kyc_addresses() {
         ]
     );
 
-
     assert_eq!(
         from_binary::<IsVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsVerified {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsVerified {
                     address: String::from("KYC_ADDRESS1"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsVerifiedResponse {
             address: String::from("KYC_ADDRESS1"),
             is_verified: false,
@@ -439,13 +465,15 @@ fn unregister_kyc_addresses() {
     assert_eq!(
         from_binary::<IsVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsVerified {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsVerified {
                     address: String::from("KYC_ADDRESS2"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsVerifiedResponse {
             address: String::from("KYC_ADDRESS2"),
             is_verified: false,
@@ -467,10 +495,10 @@ fn accept_terms_of_use() {
 
     let msg = ExecuteMsg::AcceptTermsOfUse {};
     let info = mock_info("user1", &[]);
-    let res = execute(deps.as_mut(), mock_env(), info.clone(),msg.clone()).unwrap();
+    let res = execute(deps.as_mut(), mock_env(), info.clone(), msg.clone()).unwrap();
 
     assert_eq!(
-       res.attributes,
+        res.attributes,
         vec![
             attr("action", "accept_terms_of_use"),
             attr("address", "user1"),
@@ -480,13 +508,15 @@ fn accept_terms_of_use() {
     assert_eq!(
         from_binary::<IsAcceptedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsAccepted {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsAccepted {
                     address: String::from("user1"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsAcceptedResponse {
             address: String::from("user1"),
             is_accepted: true,
@@ -496,13 +526,15 @@ fn accept_terms_of_use() {
     assert_eq!(
         from_binary::<IsAcceptedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsAccepted {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsAccepted {
                     address: String::from("user2"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsAcceptedResponse {
             address: String::from("user2"),
             is_accepted: false,
@@ -525,13 +557,15 @@ fn is_accepted_and_verified_query() {
     assert_eq!(
         from_binary::<IsAcceptedVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsAcceptedVerified {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsAcceptedVerified {
                     address: String::from("user1"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsAcceptedVerifiedResponse {
             address: String::from("user1"),
             is_accepted: false,
@@ -544,7 +578,7 @@ fn is_accepted_and_verified_query() {
     let res = execute(deps.as_mut(), mock_env(), info.clone(), msg.clone()).unwrap();
 
     assert_eq!(
-       res.attributes,
+        res.attributes,
         vec![
             attr("action", "accept_terms_of_use"),
             attr("address", "user1"),
@@ -554,13 +588,15 @@ fn is_accepted_and_verified_query() {
     assert_eq!(
         from_binary::<IsAcceptedVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsAcceptedVerified {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsAcceptedVerified {
                     address: String::from("user1"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsAcceptedVerifiedResponse {
             address: String::from("user1"),
             is_accepted: true,
@@ -571,13 +607,15 @@ fn is_accepted_and_verified_query() {
     assert_eq!(
         from_binary::<IsAcceptedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsAccepted {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsAccepted {
                     address: String::from("user2"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsAcceptedResponse {
             address: String::from("user2"),
             is_accepted: false,
@@ -594,13 +632,15 @@ fn is_accepted_and_verified_query() {
     assert_eq!(
         from_binary::<IsAcceptedVerifiedResponse>(
             &query(
-                deps.as_ref(), mock_env(), QueryMsg::IsAcceptedVerified {
+                deps.as_ref(),
+                mock_env(),
+                QueryMsg::IsAcceptedVerified {
                     address: String::from("user1"),
                 },
             )
-                .unwrap()
+            .unwrap()
         )
-            .unwrap(),
+        .unwrap(),
         IsAcceptedVerifiedResponse {
             address: String::from("user1"),
             is_accepted: true,

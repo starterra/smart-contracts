@@ -1,12 +1,20 @@
-use cosmwasm_std::{Binary, CanonicalAddr, Env, StdResult, to_binary, MessageInfo, DepsMut, Deps, Response};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
+use cosmwasm_std::{
+    to_binary, Binary, CanonicalAddr, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+};
 
-use starterra_token::vesting_gateway::{ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, VestingAddressesResponse, VestingByUserResponse};
+use starterra_token::vesting_gateway::{
+    ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, VestingAddressesResponse,
+    VestingByUserResponse,
+};
 
-use crate::querier::query_is_address_on_vesting;
-use crate::state::{Config, read_config, read_vesting_addresses, store_config, store_vesting_addresses, store_pending_owner, read_pending_owner, remove_pending_owner};
 use crate::errors::ContractError;
+use crate::querier::query_is_address_on_vesting;
+use crate::state::{
+    read_config, read_pending_owner, read_vesting_addresses, remove_pending_owner, store_config,
+    store_pending_owner, store_vesting_addresses, Config,
+};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -38,9 +46,15 @@ pub fn execute(
             assert_owner_privilege(deps.as_ref(), info.clone())?;
             match msg {
                 ExecuteMsg::UpdateConfig { owner } => update_config(deps, env, owner),
-                ExecuteMsg::UpdateVestingAddresses { vesting_addresses } => update_vesting_addresses(deps, env, vesting_addresses),
-                ExecuteMsg::AddVestingAddress { vesting_address } => add_vesting_address(deps, env, vesting_address),
-                ExecuteMsg::RemoveVestingAddress { vesting_address } => remove_vesting_address(deps, env, vesting_address),
+                ExecuteMsg::UpdateVestingAddresses { vesting_addresses } => {
+                    update_vesting_addresses(deps, env, vesting_addresses)
+                }
+                ExecuteMsg::AddVestingAddress { vesting_address } => {
+                    add_vesting_address(deps, env, vesting_address)
+                }
+                ExecuteMsg::RemoveVestingAddress { vesting_address } => {
+                    remove_vesting_address(deps, env, vesting_address)
+                }
                 _ => panic!("DO NOT ENTER HERE"),
             }
         }
@@ -59,15 +73,10 @@ pub fn update_config(
     }
 
     store_config(deps.storage, &config)?;
-    Ok(Response::new()
-        .add_attribute("action", "update_config")
-    )
+    Ok(Response::new().add_attribute("action", "update_config"))
 }
 
-pub fn accept_ownership(
-    deps: DepsMut,
-    info: MessageInfo,
-) -> Result<Response, ContractError> {
+pub fn accept_ownership(deps: DepsMut, info: MessageInfo) -> Result<Response, ContractError> {
     match read_pending_owner(deps.storage) {
         None => {
             return Err(ContractError::PendingOwnerMissing {});
@@ -98,17 +107,20 @@ pub fn update_vesting_addresses(
         return Err(ContractError::CannotHaveMoreVestingAddresses { max: 6 });
     }
 
-    let addresses_with_errors: (Vec<_>, Vec<_>) = vesting_addresses.into_iter().map(|address| {
-        deps.api.addr_canonicalize(&address)
-    }).partition(Result::is_ok);
+    let addresses_with_errors: (Vec<_>, Vec<_>) = vesting_addresses
+        .into_iter()
+        .map(|address| deps.api.addr_canonicalize(&address))
+        .partition(Result::is_ok);
 
-    let addresses: Vec<_> = addresses_with_errors.0.into_iter().map(Result::unwrap).collect();
+    let addresses: Vec<_> = addresses_with_errors
+        .0
+        .into_iter()
+        .map(Result::unwrap)
+        .collect();
 
     store_vesting_addresses(deps.storage, &addresses)?;
 
-    Ok(Response::new()
-        .add_attribute("action", "update_vesting_addresses")
-    )
+    Ok(Response::new().add_attribute("action", "update_vesting_addresses"))
 }
 
 pub fn add_vesting_address(
@@ -133,8 +145,7 @@ pub fn add_vesting_address(
 
     Ok(Response::new()
         .add_attribute("action", "add_vesting_addresses")
-        .add_attribute("new_vesting_address", vesting_address)
-    )
+        .add_attribute("new_vesting_address", vesting_address))
 }
 
 pub fn remove_vesting_address(
@@ -155,16 +166,11 @@ pub fn remove_vesting_address(
 
     Ok(Response::new()
         .add_attribute("action", "removed_vesting_addresses")
-        .add_attribute("removed_vesting_address", vesting_address)
-    )
+        .add_attribute("removed_vesting_address", vesting_address))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(
-    deps: Deps,
-    _env: Env,
-    msg: QueryMsg,
-) -> StdResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query_config(deps)?),
         QueryMsg::VestingAddresses {} => to_binary(&query_vesting_addresses(deps)?),
@@ -174,9 +180,7 @@ pub fn query(
     }
 }
 
-pub fn query_config(
-    deps: Deps,
-) -> StdResult<ConfigResponse> {
+pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let state = read_config(deps.storage)?;
     let resp = ConfigResponse {
         owner: deps.api.addr_humanize(&state.owner)?.into_string(),
@@ -185,26 +189,27 @@ pub fn query_config(
     Ok(resp)
 }
 
-pub fn query_vesting_addresses(
-    deps: Deps,
-) -> StdResult<VestingAddressesResponse> {
+pub fn query_vesting_addresses(deps: Deps) -> StdResult<VestingAddressesResponse> {
     let addresses = read_vesting_addresses(deps.storage)?;
 
-    let addresses_with_errors: (Vec<_>, Vec<_>) = addresses.into_iter().map(|address| {
-        deps.api.addr_humanize(&address)
-    }).partition(Result::is_ok);
+    let addresses_with_errors: (Vec<_>, Vec<_>) = addresses
+        .into_iter()
+        .map(|address| deps.api.addr_humanize(&address))
+        .partition(Result::is_ok);
 
-    let addresses: Vec<_> = addresses_with_errors.0.into_iter().map(Result::unwrap).map(|value| value.into_string()).collect();
+    let addresses: Vec<_> = addresses_with_errors
+        .0
+        .into_iter()
+        .map(Result::unwrap)
+        .map(|value| value.into_string())
+        .collect();
 
     Ok(VestingAddressesResponse {
-        vesting_addresses: addresses
+        vesting_addresses: addresses,
     })
 }
 
-pub fn query_vesting_by_user(
-    deps: Deps,
-    address: String,
-) -> StdResult<VestingByUserResponse> {
+pub fn query_vesting_by_user(deps: Deps, address: String) -> StdResult<VestingByUserResponse> {
     let vesting_addresses = read_vesting_addresses(deps.storage)?;
 
     let mut res_address: Option<CanonicalAddr> = None;
@@ -221,7 +226,9 @@ pub fn query_vesting_by_user(
                     break;
                 }
             }
-            Err(e) => { return Err(e); }
+            Err(e) => {
+                return Err(e);
+            }
         }
     }
 
@@ -235,11 +242,10 @@ pub fn query_vesting_by_user(
     })
 }
 
-pub fn assert_owner_privilege(
-    deps: Deps,
-    info: MessageInfo,
-) -> Result<(), ContractError> {
-    if crate::state::read_config(deps.storage)?.owner != deps.api.addr_canonicalize(info.sender.as_str())? {
+pub fn assert_owner_privilege(deps: Deps, info: MessageInfo) -> Result<(), ContractError> {
+    if crate::state::read_config(deps.storage)?.owner
+        != deps.api.addr_canonicalize(info.sender.as_str())?
+    {
         return Err(ContractError::Unauthorized {});
     }
 
@@ -247,10 +253,6 @@ pub fn assert_owner_privilege(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(
-    _deps: DepsMut,
-    _env: Env,
-    _msg: MigrateMsg,
-) -> Result<Response, ContractError> {
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
     Ok(Response::default())
 }

@@ -1,15 +1,14 @@
+use starterra_token::staking_gateway::{
+    AddressesResponse, BondAmountResponse, CanStakeResponse, CanStakeStatus, ConfigResponse,
+};
 
-use starterra_token::staking_gateway::{AddressesResponse, CanStakeResponse, CanStakeStatus, ConfigResponse, BondAmountResponse};
-
-use crate::state::{Config, read_config};
 use crate::errors::ContractError;
-use crate::tools::{is_user_staking, get_staking_amount, fetch_staking_statuses};
+use crate::state::{read_config, Config};
+use crate::tools::{fetch_staking_statuses, get_staking_amount, is_user_staking};
 use cosmwasm_std::{Deps, Uint128};
 use starterra_token::common::convert_raw_to_human;
 
-pub fn query_config(
-    deps: Deps,
-) -> Result<ConfigResponse, ContractError> {
+pub fn query_config(deps: Deps) -> Result<ConfigResponse, ContractError> {
     let state = read_config(deps.storage)?;
     let resp = ConfigResponse {
         owner: deps.api.addr_humanize(&state.owner)?.into_string(),
@@ -19,10 +18,7 @@ pub fn query_config(
     Ok(resp)
 }
 
-pub fn query_can_stake(
-    deps: Deps,
-    user: String,
-) -> Result<CanStakeResponse, ContractError> {
+pub fn query_can_stake(deps: Deps, user: String) -> Result<CanStakeResponse, ContractError> {
     let staking_statuses = fetch_staking_statuses(deps, &user)?;
     let mut statuses = Vec::with_capacity(staking_statuses.len());
 
@@ -34,7 +30,12 @@ pub fn query_can_stake(
             });
         }
 
-        if statuses.iter().filter(|can_stake| can_stake.can_stake == true).count() != 1 {
+        if statuses
+            .iter()
+            .filter(|can_stake| can_stake.can_stake == true)
+            .count()
+            != 1
+        {
             return Err(ContractError::CannotStakeInMoreThanOneContract {});
         }
     } else {
@@ -46,16 +47,10 @@ pub fn query_can_stake(
         }
     }
 
-    return Ok(CanStakeResponse {
-        statuses,
-    });
+    return Ok(CanStakeResponse { statuses });
 }
 
-
-pub fn query_bond_amount(
-    deps: Deps,
-    user: String,
-) -> Result<BondAmountResponse, ContractError> {
+pub fn query_bond_amount(deps: Deps, user: String) -> Result<BondAmountResponse, ContractError> {
     let staking_statuses = fetch_staking_statuses(deps, &user)?;
     let staking_info = get_staking_amount(&staking_statuses)?;
 
@@ -66,19 +61,17 @@ pub fn query_bond_amount(
     });
 }
 
-pub fn query_addresses(
-    deps: Deps,
-) -> Result<AddressesResponse, ContractError> {
+pub fn query_addresses(deps: Deps) -> Result<AddressesResponse, ContractError> {
     let config: Config = read_config(deps.storage)?;
 
-    let addresses: Vec<String> = config.staking_contracts
+    let addresses: Vec<String> = config
+        .staking_contracts
         .iter()
         .map(|contract_addr| {
             let addr = deps.api.addr_humanize(contract_addr);
             addr.unwrap().into_string()
-        }).collect::<Vec<String>>();
+        })
+        .collect::<Vec<String>>();
 
-    return Ok(AddressesResponse {
-        addresses
-    });
+    return Ok(AddressesResponse { addresses });
 }

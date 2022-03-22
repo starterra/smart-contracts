@@ -2,7 +2,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{CanonicalAddr, StdResult, Storage, Uint128};
-use cosmwasm_storage::{singleton, singleton_read, bucket, bucket_read, Singleton};
+use cosmwasm_storage::{bucket, bucket_read, singleton, singleton_read, Singleton};
 use starterra_token::airdrop_genesis::AirdropInfo;
 
 static KEY_CONFIG: &[u8] = b"config";
@@ -28,10 +28,7 @@ pub fn read_config(storage: &dyn Storage) -> StdResult<Config> {
     singleton_read(storage, KEY_CONFIG).load()
 }
 
-pub fn read_airdrop_info(
-    storage: &dyn Storage,
-    address: &CanonicalAddr,
-) -> StdResult<AirdropInfo> {
+pub fn read_airdrop_info(storage: &dyn Storage, address: &CanonicalAddr) -> StdResult<AirdropInfo> {
     Ok(bucket_read::<AirdropInfo>(storage, PREFIX_KEY_AIRDROP_INFO).load(address.as_slice())?)
 }
 
@@ -49,7 +46,9 @@ pub fn store_pending_owner(storage: &mut dyn Storage, new_owner: &CanonicalAddr)
 }
 
 pub fn read_pending_owner(storage: &dyn Storage) -> Option<CanonicalAddr> {
-    singleton_read(storage, KEY_PENDING_OWNER).may_load().unwrap()
+    singleton_read(storage, KEY_PENDING_OWNER)
+        .may_load()
+        .unwrap()
 }
 
 pub fn remove_pending_owner(storage: &mut dyn Storage) {

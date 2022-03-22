@@ -1,13 +1,16 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std:: {Env, Response, StdResult, Binary, to_binary, DepsMut, MessageInfo, Deps};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
-use starterra_token::kyc_vault::{MigrateMsg, QueryMsg, InstantiateMsg, ExecuteMsg};
-use crate::state::{store_config, Config};
-use crate::execute::{register_kyc_account, register_kyc_accounts, accept_terms_of_use, update_config, accept_ownership};
-use crate::tools::{assert_kyc_provider_privilege};
-use crate::queries::{query_config, query_verified, query_accepted, query_accepted_verified};
 use crate::errors::ContractError;
+use crate::execute::{
+    accept_ownership, accept_terms_of_use, register_kyc_account, register_kyc_accounts,
+    update_config,
+};
+use crate::queries::{query_accepted, query_accepted_verified, query_config, query_verified};
+use crate::state::{store_config, Config};
+use crate::tools::assert_kyc_provider_privilege;
+use starterra_token::kyc_vault::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -17,7 +20,7 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     store_config(
-       deps.storage,
+        deps.storage,
         &Config {
             owner: deps.api.addr_canonicalize(&msg.owner)?,
             kyc_provider_address: deps.api.addr_canonicalize(&msg.kyc_provider_address)?,
@@ -62,21 +65,12 @@ pub fn execute(
     }
 }
 
-
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(
-    deps: Deps,
-    _env: Env,
-    msg: QueryMsg,
-) -> StdResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query_config(deps)?),
-        QueryMsg::IsVerified { address } => {
-            to_binary(&query_verified(deps, address)?)
-        }
-        QueryMsg::IsAccepted { address } => {
-            to_binary(&query_accepted(deps, address)?)
-        }
+        QueryMsg::IsVerified { address } => to_binary(&query_verified(deps, address)?),
+        QueryMsg::IsAccepted { address } => to_binary(&query_accepted(deps, address)?),
         QueryMsg::IsAcceptedVerified { address } => {
             to_binary(&query_accepted_verified(deps, address)?)
         }
@@ -87,4 +81,3 @@ pub fn query(
 pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     Ok(Response::default())
 }
-

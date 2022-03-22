@@ -1,9 +1,12 @@
-use cosmwasm_std::{ DepsMut, MessageInfo, Response};
+use cosmwasm_std::{DepsMut, MessageInfo, Response};
 
-use crate::state::{Config, store_config, read_config, store_pending_owner, remove_pending_owner, read_pending_owner};
 use crate::errors::ContractError;
-use starterra_token::common::convert_human_to_raw;
+use crate::state::{
+    read_config, read_pending_owner, remove_pending_owner, store_config, store_pending_owner,
+    Config,
+};
 use crate::tools::assert_staking_contracts_len;
+use starterra_token::common::convert_human_to_raw;
 
 pub fn update_config(
     deps: DepsMut,
@@ -30,10 +33,7 @@ pub fn update_config(
     Ok(Response::new().add_attribute("action", "update_config"))
 }
 
-pub fn accept_ownership(
-    deps: DepsMut,
-    info: MessageInfo,
-) -> Result<Response, ContractError> {
+pub fn accept_ownership(deps: DepsMut, info: MessageInfo) -> Result<Response, ContractError> {
     match read_pending_owner(deps.storage) {
         None => {
             return Err(ContractError::PendingOwnerMissing {});

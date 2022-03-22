@@ -1,12 +1,15 @@
-use cosmwasm_std::{from_binary, to_binary, Binary, CanonicalAddr, QueryRequest, Uint128, WasmQuery, BalanceResponse, BankQuery, Deps};
+use cosmwasm_std::{
+    from_binary, to_binary, BalanceResponse, BankQuery, Binary, CanonicalAddr, Deps, QueryRequest,
+    Uint128, WasmQuery,
+};
 
 use cosmwasm_storage::to_length_prefixed;
-use starterra_token::staking::{StakerInfoResponse};
-use starterra_token::staking::QueryMsg::{StakerInfo};
+use starterra_token::staking::QueryMsg::StakerInfo;
+use starterra_token::staking::StakerInfoResponse;
 
 use crate::errors::ContractError;
-use starterra_token::ido::QueryMsg::FunderInfo;
 use starterra_token::ido::ParticipantResponse;
+use starterra_token::ido::QueryMsg::FunderInfo;
 
 pub fn load_token_balance(
     deps: Deps,
@@ -46,24 +49,26 @@ pub fn check_if_user_stakes(
     contract_addr: &String,
     account_addr: &CanonicalAddr,
 ) -> Result<bool, ContractError> {
-    let res: StakerInfoResponse = deps.querier
+    let res: StakerInfoResponse = deps
+        .querier
         .query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: String::from(contract_addr),
             msg: to_binary(&StakerInfo {
                 staker: deps.api.addr_humanize(&account_addr)?.into_string(),
                 block_time: None,
             })?,
-        })).unwrap_or(StakerInfoResponse {
-        staker: "".to_string(),
-        reward_index: Default::default(),
-        bond_amount: Default::default(),
-        pending_reward: Default::default(),
-        rewards_per_fee: vec![],
-        time_to_best_fee: None,
-        pending_unbond_left: None,
-        max_submit_to_unbond_amount: None,
-        submit_to_unbond_info: None
-    });
+        }))
+        .unwrap_or(StakerInfoResponse {
+            staker: "".to_string(),
+            reward_index: Default::default(),
+            bond_amount: Default::default(),
+            pending_reward: Default::default(),
+            rewards_per_fee: vec![],
+            time_to_best_fee: None,
+            pending_unbond_left: None,
+            max_submit_to_unbond_amount: None,
+            submit_to_unbond_info: None,
+        });
 
     return Ok(res.bond_amount > Uint128::zero());
 }
@@ -73,15 +78,15 @@ pub fn check_if_user_participated_in_ido(
     contract_addr: &String,
     account_addr: &CanonicalAddr,
 ) -> Result<bool, ContractError> {
-    let res: ParticipantResponse = deps.querier
+    let res: ParticipantResponse = deps
+        .querier
         .query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: String::from(contract_addr),
             msg: to_binary(&FunderInfo {
                 address: deps.api.addr_humanize(&account_addr)?.into_string(),
             })?,
-        })).unwrap_or(ParticipantResponse {
-        is_joined: false,
-    });
+        }))
+        .unwrap_or(ParticipantResponse { is_joined: false });
 
     return Ok(res.is_joined);
 }
