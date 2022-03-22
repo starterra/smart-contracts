@@ -1,9 +1,9 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::Uint128;
 use crate::common::OrderBy;
-use crate::vesting::common::{VestingAccount, OperationFee};
+use crate::vesting::common::{OperationFee, VestingAccount};
+use cosmwasm_std::Uint128;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
@@ -71,7 +71,7 @@ pub enum QueryMsg {
     VestingAccountsFrozen {},
     UserVesting {
         address: String,
-    }
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

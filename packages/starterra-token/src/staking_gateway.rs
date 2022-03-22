@@ -1,6 +1,6 @@
+use cosmwasm_std::Uint128;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use cosmwasm_std::Uint128;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
@@ -26,12 +26,8 @@ pub struct MigrateMsg {}
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Config {},
-    CanUserStake {
-        user: String,
-    },
-    BondAmount {
-        user: String,
-    },
+    CanUserStake { user: String },
+    BondAmount { user: String },
     Addresses {},
 }
 

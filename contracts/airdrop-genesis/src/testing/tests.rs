@@ -1,8 +1,13 @@
-use cosmwasm_std::{attr, BankMsg, Coin, coin, CosmosMsg, from_binary, SubMsg, to_binary, Uint128, WasmMsg};
 use cosmwasm_std::testing::{mock_env, mock_info};
+use cosmwasm_std::{
+    attr, coin, from_binary, to_binary, BankMsg, Coin, CosmosMsg, SubMsg, Uint128, WasmMsg,
+};
 use cw20::Cw20ExecuteMsg;
 
-use starterra_token::airdrop_genesis::{AirdropAccount, AirdropUserInfoResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, PassedMissions, QueryMsg};
+use starterra_token::airdrop_genesis::{
+    AirdropAccount, AirdropUserInfoResponse, ConfigResponse, ExecuteMsg, InstantiateMsg,
+    PassedMissions, QueryMsg,
+};
 use starterra_token::staking::StakerInfoResponse;
 
 use crate::contract::{execute, instantiate, query};
@@ -125,7 +130,10 @@ fn update_config() {
     let msg = ExecuteMsg::UpdateConfig {
         owner: None,
         lp_staking_addresses: Some(vec![String::from("staking1"), String::from("staking2")]),
-        stt_staking_addresses: Some(vec![String::from("stakingstt1"), String::from("stakingstt2")]),
+        stt_staking_addresses: Some(vec![
+            String::from("stakingstt1"),
+            String::from("stakingstt2"),
+        ]),
         ido_addresses: Some(vec![String::from("ido1"), String::from("ido2")]),
         claim_fee: Some(Uint128::from(1000000u128)),
     };
@@ -137,9 +145,18 @@ fn update_config() {
     let res = query(deps.as_ref(), env, QueryMsg::Config {}).unwrap();
     let config: ConfigResponse = from_binary(&res).unwrap();
     assert_eq!("owner2", config.owner.as_str());
-    assert_eq!(vec![String::from("staking1"), String::from("staking2")], config.lp_staking_addresses);
-    assert_eq!(vec![String::from("stakingstt1"), String::from("stakingstt2")], config.stt_staking_addresses);
-    assert_eq!(vec![String::from("ido1"), String::from("ido2")], config.ido_addresses);
+    assert_eq!(
+        vec![String::from("staking1"), String::from("staking2")],
+        config.lp_staking_addresses
+    );
+    assert_eq!(
+        vec![String::from("stakingstt1"), String::from("stakingstt2")],
+        config.stt_staking_addresses
+    );
+    assert_eq!(
+        vec![String::from("ido1"), String::from("ido2")],
+        config.ido_addresses
+    );
 }
 
 #[test]
@@ -220,12 +237,11 @@ fn claim() {
     let env = mock_env();
     let info = mock_info("owner", &[]);
     let msg = ExecuteMsg::RegisterAirdropAccounts {
-        airdrop_accounts:
-        vec![AirdropAccount {
+        airdrop_accounts: vec![AirdropAccount {
             amount: Uint128::from(1000000u128),
             already_claimed: Uint128::from(0u128),
             address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
-        }]
+        }],
     };
 
     let _res = execute(deps.as_mut(), env, info, msg).unwrap();
@@ -233,8 +249,13 @@ fn claim() {
     let msg = ExecuteMsg::Claim {};
 
     let env = mock_env();
-    let info = mock_info("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
-                         &[Coin { denom: String::from("uusd"), amount: Uint128::from(1000000u128) }]);
+    let info = mock_info(
+        "terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
+        &[Coin {
+            denom: String::from("uusd"),
+            amount: Uint128::from(1000000u128),
+        }],
+    );
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone()).unwrap();
     assert_eq!(
         res.messages,
@@ -245,7 +266,7 @@ fn claim() {
                 recipient: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
                 amount: Uint128::from(250000u128),
             })
-                .unwrap(),
+            .unwrap(),
         }))]
     );
 
@@ -268,29 +289,33 @@ fn claim() {
                     address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
                 },
             )
-                .unwrap()
-        )
             .unwrap()
-            .claimed_amount
+        )
+        .unwrap()
+        .claimed_amount
     );
 
     let env = mock_env();
     let info = mock_info("owner", &[]);
     let msg = ExecuteMsg::RegisterAirdropAccounts {
-        airdrop_accounts:
-        vec![AirdropAccount {
+        airdrop_accounts: vec![AirdropAccount {
             amount: Uint128::from(2000000u128),
             already_claimed: Uint128::from(0u128),
             address: String::from("terra1tjv5e0lr5s3fum4wfj7grtclm34xvms5dv9l75"),
-        }]
+        }],
     };
     let _res = execute(deps.as_mut(), env, info, msg).unwrap();
     // Claim after registering airdrop account update
     let msg = ExecuteMsg::Claim {};
 
     let env = mock_env();
-    let info = mock_info("terra1tjv5e0lr5s3fum4wfj7grtclm34xvms5dv9l75",
-                         &[Coin { denom: String::from("uusd"), amount: Uint128::from(1000000u128) }]);
+    let info = mock_info(
+        "terra1tjv5e0lr5s3fum4wfj7grtclm34xvms5dv9l75",
+        &[Coin {
+            denom: String::from("uusd"),
+            amount: Uint128::from(1000000u128),
+        }],
+    );
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone()).unwrap();
     assert_eq!(
         res.messages,
@@ -301,7 +326,7 @@ fn claim() {
                 recipient: String::from("terra1tjv5e0lr5s3fum4wfj7grtclm34xvms5dv9l75"),
                 amount: Uint128::from(500000u128),
             })
-                .unwrap(),
+            .unwrap(),
         }))]
     );
 
@@ -336,20 +361,24 @@ fn double_claim_should_reject() {
     let env = mock_env();
     let info = mock_info("owner", &[]);
     let msg = ExecuteMsg::RegisterAirdropAccounts {
-        airdrop_accounts:
-        vec![AirdropAccount {
+        airdrop_accounts: vec![AirdropAccount {
             amount: Uint128::from(1000000u128),
             already_claimed: Uint128::from(0u128),
             address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
-        }]
+        }],
     };
     let _res = execute(deps.as_mut(), env, info, msg).unwrap();
 
     let msg = ExecuteMsg::Claim {};
 
     let env = mock_env();
-    let info = mock_info("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
-                         &[Coin { denom: String::from("uusd"), amount: Uint128::from(1000000u128) }]);
+    let info = mock_info(
+        "terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
+        &[Coin {
+            denom: String::from("uusd"),
+            amount: Uint128::from(1000000u128),
+        }],
+    );
 
     execute(deps.as_mut(), env.clone(), info.clone(), msg.clone()).unwrap();
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone());
@@ -366,8 +395,16 @@ fn double_claim_after_staking_should_not_reject() {
     let msg = InstantiateMsg {
         owner: String::from("owner"),
         starterra_token: String::from("starterra"),
-        lp_staking_addresses: vec![String::from("staking1"), String::from("staking2"), String::from("staking3")],
-        stt_staking_addresses: vec![String::from("stakingstt1"), String::from("stakingstt2"), String::from("stakingstt3")],
+        lp_staking_addresses: vec![
+            String::from("staking1"),
+            String::from("staking2"),
+            String::from("staking3"),
+        ],
+        stt_staking_addresses: vec![
+            String::from("stakingstt1"),
+            String::from("stakingstt2"),
+            String::from("stakingstt3"),
+        ],
         ido_addresses: vec![String::from("ido1"), String::from("ido2")],
         claim_fee: Uint128::from(1000000u128),
     };
@@ -380,17 +417,18 @@ fn double_claim_after_staking_should_not_reject() {
     let env = mock_env();
     let info = mock_info("owner", &[]);
     let msg = ExecuteMsg::RegisterAirdropAccounts {
-        airdrop_accounts:
-        vec![AirdropAccount {
-            amount: Uint128::from(1000000u128),
-            already_claimed: Uint128::from(0u128),
-            address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
-        },
-             AirdropAccount {
-                 amount: Uint128::from(1000000u128),
-                 already_claimed: Uint128::from(0u128),
-                 address: String::from("terra1csnmlw0v0pyy36tk7scfwvh8ujpnydu5dtfj58"),
-             }]
+        airdrop_accounts: vec![
+            AirdropAccount {
+                amount: Uint128::from(1000000u128),
+                already_claimed: Uint128::from(0u128),
+                address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
+            },
+            AirdropAccount {
+                amount: Uint128::from(1000000u128),
+                already_claimed: Uint128::from(0u128),
+                address: String::from("terra1csnmlw0v0pyy36tk7scfwvh8ujpnydu5dtfj58"),
+            },
+        ],
     };
 
     let _res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
@@ -399,8 +437,10 @@ fn double_claim_after_staking_should_not_reject() {
         deps.as_ref(),
         env.clone(),
         QueryMsg::UserInfo {
-            address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8")
-        }).unwrap();
+            address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
+        },
+    )
+    .unwrap();
     let claimed_amount: AirdropUserInfoResponse = from_binary(&res).unwrap();
     assert_eq!(
         claimed_amount,
@@ -418,11 +458,23 @@ fn double_claim_after_staking_should_not_reject() {
     let msg = ExecuteMsg::Claim {};
 
     let env = mock_env();
-    let info = mock_info("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
-                         &[Coin { denom: String::from("uusd"), amount: Uint128::from(1000000u128) }]);
+    let info = mock_info(
+        "terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
+        &[Coin {
+            denom: String::from("uusd"),
+            amount: Uint128::from(1000000u128),
+        }],
+    );
     execute(deps.as_mut(), env.clone(), info.clone(), msg.clone()).unwrap();
 
-    let res = query(deps.as_ref(), env.clone(), QueryMsg::UserInfo { address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8") }).unwrap();
+    let res = query(
+        deps.as_ref(),
+        env.clone(),
+        QueryMsg::UserInfo {
+            address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
+        },
+    )
+    .unwrap();
     let claimed_amount: AirdropUserInfoResponse = from_binary(&res).unwrap();
     assert_eq!(
         claimed_amount,
@@ -453,39 +505,41 @@ fn double_claim_after_staking_should_not_reject() {
                         pending_unbond_left: None,
                         max_submit_to_unbond_amount: None,
                         submit_to_unbond_info: None,
-                    }
+                    },
                 )],
             ),
             (
                 String::from("stakingstt2"),
-                vec![(
-                         String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
-                         StakerInfoResponse {
-                             staker: "".to_string(),
-                             reward_index: Default::default(),
-                             bond_amount: Uint128::from(100u64),
-                             pending_reward: Default::default(),
-                             rewards_per_fee: vec![],
-                             time_to_best_fee: None,
-                             pending_unbond_left: None,
-                             max_submit_to_unbond_amount: None,
-                             submit_to_unbond_info: None,
-                         }
-                     ),
-                     (
-                         String::from("terra1csnmlw0v0pyy36tk7scfwvh8ujpnydu5dtfj58"),
-                         StakerInfoResponse {
-                             staker: "".to_string(),
-                             reward_index: Default::default(),
-                             bond_amount: Uint128::from(100u64),
-                             pending_reward: Default::default(),
-                             rewards_per_fee: vec![],
-                             time_to_best_fee: None,
-                             pending_unbond_left: None,
-                             max_submit_to_unbond_amount: None,
-                             submit_to_unbond_info: None,
-                         }
-                     )],
+                vec![
+                    (
+                        String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
+                        StakerInfoResponse {
+                            staker: "".to_string(),
+                            reward_index: Default::default(),
+                            bond_amount: Uint128::from(100u64),
+                            pending_reward: Default::default(),
+                            rewards_per_fee: vec![],
+                            time_to_best_fee: None,
+                            pending_unbond_left: None,
+                            max_submit_to_unbond_amount: None,
+                            submit_to_unbond_info: None,
+                        },
+                    ),
+                    (
+                        String::from("terra1csnmlw0v0pyy36tk7scfwvh8ujpnydu5dtfj58"),
+                        StakerInfoResponse {
+                            staker: "".to_string(),
+                            reward_index: Default::default(),
+                            bond_amount: Uint128::from(100u64),
+                            pending_reward: Default::default(),
+                            rewards_per_fee: vec![],
+                            time_to_best_fee: None,
+                            pending_unbond_left: None,
+                            max_submit_to_unbond_amount: None,
+                            submit_to_unbond_info: None,
+                        },
+                    ),
+                ],
             ),
         ],
         vec![
@@ -493,20 +547,16 @@ fn double_claim_after_staking_should_not_reject() {
                 String::from("ido1"),
                 vec![(
                     String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
-                    ParticipantResponse {
-                        is_joined: true
-                    }
+                    ParticipantResponse { is_joined: true },
                 )],
             ),
             (
                 String::from("ido2"),
                 vec![(
                     String::from("terra1csnmlw0v0pyy36tk7scfwvh8ujpnydu5dtfj58"),
-                    ParticipantResponse {
-                        is_joined: true
-                    }
+                    ParticipantResponse { is_joined: true },
                 )],
-            )
+            ),
         ],
     );
 
@@ -520,7 +570,7 @@ fn double_claim_after_staking_should_not_reject() {
                 recipient: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
                 amount: Uint128::from(750000u128),
             })
-                .unwrap(),
+            .unwrap(),
         }))]
     );
 
@@ -533,7 +583,14 @@ fn double_claim_after_staking_should_not_reject() {
         ]
     );
 
-    let res = query(deps.as_ref(), env.clone(), QueryMsg::UserInfo { address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8") }).unwrap();
+    let res = query(
+        deps.as_ref(),
+        env.clone(),
+        QueryMsg::UserInfo {
+            address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
+        },
+    )
+    .unwrap();
     let claimed_amount: AirdropUserInfoResponse = from_binary(&res).unwrap();
     assert_eq!(
         claimed_amount,
@@ -548,7 +605,14 @@ fn double_claim_after_staking_should_not_reject() {
         }
     );
 
-    let res2 = query(deps.as_ref(), env, QueryMsg::UserInfo { address: String::from("terra1csnmlw0v0pyy36tk7scfwvh8ujpnydu5dtfj58") }).unwrap();
+    let res2 = query(
+        deps.as_ref(),
+        env,
+        QueryMsg::UserInfo {
+            address: String::from("terra1csnmlw0v0pyy36tk7scfwvh8ujpnydu5dtfj58"),
+        },
+    )
+    .unwrap();
     let claimed_amount_user2: AirdropUserInfoResponse = from_binary(&res2).unwrap();
     assert_eq!(
         claimed_amount_user2.current_passed_missions,
@@ -581,12 +645,11 @@ fn claim_without_fee_should_reject() {
     let env = mock_env();
     let info = mock_info("not_owner", &[]);
     let msg = ExecuteMsg::RegisterAirdropAccounts {
-        airdrop_accounts:
-        vec![AirdropAccount {
+        airdrop_accounts: vec![AirdropAccount {
             amount: Uint128::from(1000000u128),
             already_claimed: Uint128::from(0u128),
             address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
-        }]
+        }],
     };
 
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone());
@@ -653,12 +716,13 @@ fn end_airdrop_genesis() {
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
     assert_eq!(
         res.messages,
-        [SubMsg::new(CosmosMsg::Bank(
-            BankMsg::Send {
-                to_address: String::from("owner"),
-                amount: vec![Coin { denom: "uusd".to_string(), amount: Uint128::from(100u128) }],
-            },
-        ))]
+        [SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
+            to_address: String::from("owner"),
+            amount: vec![Coin {
+                denom: "uusd".to_string(),
+                amount: Uint128::from(100u128)
+            }],
+        },))]
     );
 
     assert_eq!(
@@ -727,15 +791,13 @@ fn emergency_withdraw() {
                     recipient: String::from("owner"),
                     amount: Uint128::from(1000u128),
                 })
-                    .unwrap(),
+                .unwrap(),
                 funds: vec![],
             })),
-            SubMsg::new(CosmosMsg::Bank(
-                BankMsg::Send {
-                    to_address: String::from("owner"),
-                    amount: vec![coin(100, "uusd")],
-                },
-            )),
+            SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
+                to_address: String::from("owner"),
+                amount: vec![coin(100, "uusd")],
+            },)),
         ],
     );
 }
@@ -761,12 +823,11 @@ fn claim_with_second_register() {
     let env = mock_env();
     let info = mock_info("owner", &[]);
     let msg = ExecuteMsg::RegisterAirdropAccounts {
-        airdrop_accounts:
-        vec![AirdropAccount {
+        airdrop_accounts: vec![AirdropAccount {
             amount: Uint128::from(1000000u128),
             already_claimed: Uint128::from(0u128),
             address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
-        }]
+        }],
     };
 
     let _res = execute(deps.as_mut(), env, info, msg).unwrap();
@@ -774,8 +835,13 @@ fn claim_with_second_register() {
     let msg = ExecuteMsg::Claim {};
 
     let env = mock_env();
-    let info = mock_info("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
-                         &[Coin { denom: String::from("uusd"), amount: Uint128::from(1000000u128) }]);
+    let info = mock_info(
+        "terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
+        &[Coin {
+            denom: String::from("uusd"),
+            amount: Uint128::from(1000000u128),
+        }],
+    );
 
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone()).unwrap();
     assert_eq!(
@@ -787,7 +853,7 @@ fn claim_with_second_register() {
                 recipient: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
                 amount: Uint128::from(250000u128),
             })
-                .unwrap(),
+            .unwrap(),
         }))]
     );
 
@@ -810,32 +876,35 @@ fn claim_with_second_register() {
                     address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
                 },
             )
-                .unwrap()
-        )
             .unwrap()
-            .claimed_amount
+        )
+        .unwrap()
+        .claimed_amount
     );
 
     let env = mock_env();
     let info = mock_info("owner", &[]);
     let msg = ExecuteMsg::RegisterAirdropAccounts {
-        airdrop_accounts:
-        vec![AirdropAccount {
+        airdrop_accounts: vec![AirdropAccount {
             amount: Uint128::from(2000000u128),
             already_claimed: Uint128::from(250000u128),
             address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
-        }]
+        }],
     };
 
     let _res = execute(deps.as_mut(), env, info, msg).unwrap();
-
 
     // Claim after registering airdrop account update
     let msg = ExecuteMsg::Claim {};
 
     let env = mock_env();
-    let info = mock_info("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
-                         &[Coin { denom: String::from("uusd"), amount: Uint128::from(1000000u128) }]);
+    let info = mock_info(
+        "terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
+        &[Coin {
+            denom: String::from("uusd"),
+            amount: Uint128::from(1000000u128),
+        }],
+    );
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone()).unwrap();
     assert_eq!(
         res.messages,
@@ -846,7 +915,7 @@ fn claim_with_second_register() {
                 recipient: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
                 amount: Uint128::from(250000u128),
             })
-                .unwrap(),
+            .unwrap(),
         }))]
     );
 
@@ -881,12 +950,11 @@ fn claim_with_second_register_over_limit() {
     let env = mock_env();
     let info = mock_info("owner", &[]);
     let msg = ExecuteMsg::RegisterAirdropAccounts {
-        airdrop_accounts:
-        vec![AirdropAccount {
+        airdrop_accounts: vec![AirdropAccount {
             amount: Uint128::from(1000000u128),
             already_claimed: Uint128::from(0u128),
             address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
-        }]
+        }],
     };
 
     let _res = execute(deps.as_mut(), env, info, msg).unwrap();
@@ -894,8 +962,13 @@ fn claim_with_second_register_over_limit() {
     let msg = ExecuteMsg::Claim {};
 
     let env = mock_env();
-    let info = mock_info("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
-                         &[Coin { denom: String::from("uusd"), amount: Uint128::from(1000000u128) }]);
+    let info = mock_info(
+        "terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
+        &[Coin {
+            denom: String::from("uusd"),
+            amount: Uint128::from(1000000u128),
+        }],
+    );
 
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone()).unwrap();
     assert_eq!(
@@ -907,7 +980,7 @@ fn claim_with_second_register_over_limit() {
                 recipient: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
                 amount: Uint128::from(250000u128),
             })
-                .unwrap(),
+            .unwrap(),
         }))]
     );
 
@@ -930,32 +1003,35 @@ fn claim_with_second_register_over_limit() {
                     address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
                 },
             )
-                .unwrap()
-        )
             .unwrap()
-            .claimed_amount
+        )
+        .unwrap()
+        .claimed_amount
     );
 
     let env = mock_env();
     let info = mock_info("owner", &[]);
     let msg = ExecuteMsg::RegisterAirdropAccounts {
-        airdrop_accounts:
-        vec![AirdropAccount {
+        airdrop_accounts: vec![AirdropAccount {
             amount: Uint128::from(500000u128),
             already_claimed: Uint128::from(250000u128),
             address: String::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
-        }]
+        }],
     };
 
     let _res = execute(deps.as_mut(), env, info, msg).unwrap();
-
 
     // Claim after registering airdrop account update
     let msg = ExecuteMsg::Claim {};
 
     let env = mock_env();
-    let info = mock_info("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
-                         &[Coin { denom: String::from("uusd"), amount: Uint128::from(1000000u128) }]);
+    let info = mock_info(
+        "terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8",
+        &[Coin {
+            denom: String::from("uusd"),
+            amount: Uint128::from(1000000u128),
+        }],
+    );
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg.clone());
 
     match res {

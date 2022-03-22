@@ -1,16 +1,15 @@
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, to_binary};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
-use starterra_token::staking_gateway::{InstantiateMsg, MigrateMsg, QueryMsg, ExecuteMsg};
+use starterra_token::staking_gateway::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
-use crate::state::{Config, store_config};
 use crate::errors::ContractError;
-use starterra_token::common::convert_human_to_raw;
+use crate::execute::{accept_ownership, update_config};
+use crate::queries::{query_addresses, query_bond_amount, query_can_stake, query_config};
+use crate::state::{store_config, Config};
 use crate::tools::assert_staking_contracts_len;
-use crate::execute::{update_config, accept_ownership};
-use crate::queries::{query_config, query_can_stake, query_bond_amount, query_addresses};
-
+use starterra_token::common::convert_human_to_raw;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -26,10 +25,7 @@ pub fn instantiate(
         staking_contracts: convert_human_to_raw(deps.as_ref(), &msg.staking_contracts)?,
     };
 
-    store_config(
-        deps.storage,
-        &config,
-    )?;
+    store_config(deps.storage, &config)?;
 
     Ok(Response::new())
 }
@@ -42,19 +38,16 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::UpdateConfig { owner, staking_contracts } => {
-            update_config(deps, info, owner, staking_contracts)
-        }
+        ExecuteMsg::UpdateConfig {
+            owner,
+            staking_contracts,
+        } => update_config(deps, info, owner, staking_contracts),
         ExecuteMsg::AcceptOwnership {} => accept_ownership(deps, info),
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(
-    deps: Deps,
-    _env: Env,
-    msg: QueryMsg,
-) -> Result<Binary, ContractError> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
     match msg {
         QueryMsg::Config {} => Ok(to_binary(&query_config(deps)?)?),
         QueryMsg::CanUserStake { user } => Ok(to_binary(&query_can_stake(deps, user)?)?),
@@ -64,10 +57,6 @@ pub fn query(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(
-    _deps: DepsMut,
-    _env: Env,
-    _msg: MigrateMsg,
-) -> StdResult<Response> {
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     Ok(Response::default())
 }

@@ -1,19 +1,15 @@
-use cosmwasm_std::{Uint128, DepsMut, MessageInfo, Env, Response};
-use crate::state::{read_config, store_config, read_state, store_state, Config, read_participant, store_participant};
-use crate::querier::{load_user_prefund_balance, check_user_kyc_terms_verified};
 use crate::errors::ContractError;
+use crate::querier::{check_user_kyc_terms_verified, load_user_prefund_balance};
+use crate::state::{
+    read_config, read_participant, read_state, store_config, store_participant, store_state, Config,
+};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Uint128};
 
-pub fn join_ido(
-    deps: DepsMut,
-    info: MessageInfo,
-    env: Env,
-) -> Result<Response, ContractError> {
-    let sender = deps.api.addr_canonicalize(&info.sender.clone().into_string())?;
-    let mut ido_participant =
-        read_participant(
-            deps.storage,
-            &sender,
-        )?;
+pub fn join_ido(deps: DepsMut, info: MessageInfo, env: Env) -> Result<Response, ContractError> {
+    let sender = deps
+        .api
+        .addr_canonicalize(&info.sender.clone().into_string())?;
+    let mut ido_participant = read_participant(deps.storage, &sender)?;
 
     if ido_participant.is_joined {
         return Err(ContractError::AlreadyJoined {});
@@ -29,7 +25,9 @@ pub fn join_ido(
 
     let funder_info = load_user_prefund_balance(
         &deps.querier,
-        deps.api.addr_humanize(&config.prefund_address)?.into_string(),
+        deps.api
+            .addr_humanize(&config.prefund_address)?
+            .into_string(),
         info.sender.clone().into_string(),
     )?;
 
@@ -39,7 +37,13 @@ pub fn join_ido(
     }
 
     //check if kyc confirmed
-    let kyc_terms_info = check_user_kyc_terms_verified(&deps.querier, deps.api.addr_humanize(&config.kyc_terms_vault_address)?.into_string(), info.sender.clone().into_string())?;
+    let kyc_terms_info = check_user_kyc_terms_verified(
+        &deps.querier,
+        deps.api
+            .addr_humanize(&config.kyc_terms_vault_address)?
+            .into_string(),
+        info.sender.clone().into_string(),
+    )?;
     if !kyc_terms_info.is_verified {
         return Err(ContractError::KycFailed {});
     }
@@ -59,10 +63,7 @@ pub fn join_ido(
         .add_attribute("address", info.sender.into_string()))
 }
 
-pub fn accept_ownership(
-    deps: DepsMut,
-    info: MessageInfo,
-) -> Result<Response, ContractError> {
+pub fn accept_ownership(deps: DepsMut, info: MessageInfo) -> Result<Response, ContractError> {
     let mut config: Config = read_config(deps.storage)?;
     match config.pending_owner {
         None => {
@@ -81,8 +82,7 @@ pub fn accept_ownership(
 
     Ok(Response::new()
         .add_attribute("action", "accept_ownership")
-        .add_attribute("owner", info.sender)
-    )
+        .add_attribute("owner", info.sender))
 }
 
 pub fn update_config(
@@ -145,6 +145,5 @@ pub fn update_config(
 
     store_config(deps.storage, &config)?;
 
-    Ok(Response::new()
-        .add_attribute("action", "update_config"))
+    Ok(Response::new().add_attribute("action", "update_config"))
 }

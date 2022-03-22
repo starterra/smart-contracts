@@ -1,13 +1,16 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{StdResult, Binary, to_binary, MessageInfo, Deps, DepsMut, Response, Env};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
-use starterra_token::ido::{ExecuteMsg, MigrateMsg, InstantiateMsg, QueryMsg};
-use crate::state::{store_config, Config, store_state, State};
-use crate::execute::{update_config, join_ido, accept_ownership};
-use crate::tools::{assert_owner_privilege};
-use crate::queries::{query_config, query_participant, query_ido_state, query_ido_status, query_snapshot_time, query_participants};
 use crate::errors::ContractError;
+use crate::execute::{accept_ownership, join_ido, update_config};
+use crate::queries::{
+    query_config, query_ido_state, query_ido_status, query_participant, query_participants,
+    query_snapshot_time,
+};
+use crate::state::{store_config, store_state, Config, State};
+use crate::tools::assert_owner_privilege;
+use starterra_token::ido::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -16,7 +19,6 @@ pub fn instantiate(
     _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
-
     if msg.end_date <= env.block.time.seconds() {
         return Err(ContractError::EndDateInThePast {});
     }
@@ -56,7 +58,7 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     match msg.clone() {
         ExecuteMsg::JoinIdo {} => join_ido(deps, info.clone(), env),
-        ExecuteMsg::AcceptOwnership {} => { accept_ownership(deps, info) }
+        ExecuteMsg::AcceptOwnership {} => accept_ownership(deps, info),
         _ => {
             assert_owner_privilege(deps.as_ref(), info.clone())?;
             match msg {
@@ -70,22 +72,20 @@ pub fn execute(
                     paused,
                     snapshot_time,
                     minimum_prefund,
-                } => {
-                    update_config(
-                        deps,
-                        info,
-                        env,
-                        owner,
-                        prefund_address,
-                        kyc_vault_address,
-                        ido_token,
-                        ido_token_price,
-                        end_date,
-                        paused,
-                        snapshot_time,
-                        minimum_prefund,
-                    )
-                }
+                } => update_config(
+                    deps,
+                    info,
+                    env,
+                    owner,
+                    prefund_address,
+                    kyc_vault_address,
+                    ido_token,
+                    ido_token_price,
+                    end_date,
+                    paused,
+                    snapshot_time,
+                    minimum_prefund,
+                ),
                 _ => panic!("DO NOT ENTER HERE"),
             }
         }
@@ -93,30 +93,18 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(
-    deps: Deps,
-    env: Env,
-    msg: QueryMsg,
-) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query_config(deps)?),
         QueryMsg::State {} => to_binary(&query_ido_state(deps)?),
-        QueryMsg::Status {
-            block_time
-        } => to_binary(&query_ido_status(deps, env, block_time)?),
-        QueryMsg::FunderInfo { address } => {
-            to_binary(&query_participant(deps, address)?)
-        }
-        QueryMsg::SnapshotTime {} => {
-            to_binary(&query_snapshot_time(deps)?)
-        }
+        QueryMsg::Status { block_time } => to_binary(&query_ido_status(deps, env, block_time)?),
+        QueryMsg::FunderInfo { address } => to_binary(&query_participant(deps, address)?),
+        QueryMsg::SnapshotTime {} => to_binary(&query_snapshot_time(deps)?),
         QueryMsg::Participants {
             start_after,
             limit,
             order_by,
-        } => {
-            to_binary(&query_participants(deps, start_after, limit, order_by)?)
-        }
+        } => to_binary(&query_participants(deps, start_after, limit, order_by)?),
     }
 }
 

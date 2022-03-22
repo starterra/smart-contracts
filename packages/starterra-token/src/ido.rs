@@ -1,7 +1,7 @@
+use crate::common::OrderBy;
+use cosmwasm_std::Uint128;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use cosmwasm_std::{Uint128};
-use crate::common::OrderBy;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
@@ -100,7 +100,6 @@ pub struct AllocationInfo {
 pub struct ParticipantsResponse {
     pub users: Vec<String>,
 }
-
 
 /// We currently take no arguments for migrations
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

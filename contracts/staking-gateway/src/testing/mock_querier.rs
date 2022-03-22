@@ -1,5 +1,8 @@
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
-use cosmwasm_std::{from_slice, to_binary, Coin, Empty, Querier, QuerierResult, QueryRequest, SystemError, WasmQuery, OwnedDeps, SystemResult, ContractResult, from_binary, Decimal, Uint128};
+use cosmwasm_std::{
+    from_binary, from_slice, to_binary, Coin, ContractResult, Decimal, Empty, OwnedDeps, Querier,
+    QuerierResult, QueryRequest, SystemError, SystemResult, Uint128, WasmQuery,
+};
 use std::collections::HashMap;
 
 use starterra_token::staking::{StakerInfo, StakerInfoResponse};
@@ -69,13 +72,32 @@ impl WasmMockQuerier {
                 match msg {
                     starterra_token::staking::QueryMsg::StakerInfo {
                         staker: address,
-                        block_time: _none
+                        block_time: _none,
                     } => {
                         let staking_information: &HashMap<String, StakerInfo> =
                             match self.token_querier.staker_info.get(contract_addr) {
                                 Some(staker_info) => staker_info,
                                 None => {
-                                    return SystemResult::Ok(ContractResult::from(to_binary(&StakerInfoResponse {
+                                    return SystemResult::Ok(ContractResult::from(to_binary(
+                                        &StakerInfoResponse {
+                                            staker: address,
+                                            reward_index: Decimal::zero(),
+                                            bond_amount: Uint128::zero(),
+                                            pending_reward: Uint128::zero(),
+                                            rewards_per_fee: vec![],
+                                            time_to_best_fee: None,
+                                            pending_unbond_left: None,
+                                            max_submit_to_unbond_amount: None,
+                                            submit_to_unbond_info: None,
+                                        },
+                                    )))
+                                }
+                            };
+                        let value = match staking_information.get(&address) {
+                            Some(v) => v,
+                            None => {
+                                return SystemResult::Ok(ContractResult::from(to_binary(
+                                    &StakerInfoResponse {
                                         staker: address,
                                         reward_index: Decimal::zero(),
                                         bond_amount: Uint128::zero(),
@@ -85,23 +107,8 @@ impl WasmMockQuerier {
                                         pending_unbond_left: None,
                                         max_submit_to_unbond_amount: None,
                                         submit_to_unbond_info: None,
-                                    })))
-                                }
-                            };
-                        let value = match staking_information.get(&address) {
-                            Some(v) => v,
-                            None => {
-                                return SystemResult::Ok(ContractResult::from(to_binary(&StakerInfoResponse {
-                                    staker: address,
-                                    reward_index: Decimal::zero(),
-                                    bond_amount: Uint128::zero(),
-                                    pending_reward: Uint128::zero(),
-                                    rewards_per_fee: vec![],
-                                    time_to_best_fee: None,
-                                    pending_unbond_left: None,
-                                    max_submit_to_unbond_amount: None,
-                                    submit_to_unbond_info: None,
-                                })))
+                                    },
+                                )))
                             }
                         };
 
@@ -117,7 +124,8 @@ impl WasmMockQuerier {
                             submit_to_unbond_info: None,
                         })))
                     }
-                    _ => self.base.handle_query(request),                }
+                    _ => self.base.handle_query(request),
+                }
             }
             _ => self.base.handle_query(request),
         }

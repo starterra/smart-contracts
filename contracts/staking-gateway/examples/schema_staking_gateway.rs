@@ -1,10 +1,10 @@
 use std::env::current_dir;
 use std::fs::create_dir_all;
 
-use starterra_token::staking_gateway::{
-    ConfigResponse, CanStakeResponse, ExecuteMsg, InstantiateMsg, QueryMsg, AddressesResponse
-};
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
+use starterra_token::staking_gateway::{
+    AddressesResponse, CanStakeResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
+};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

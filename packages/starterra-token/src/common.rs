@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::{Order, Uint128, StdResult, StdError, Deps, MessageInfo, CanonicalAddr};
+use cosmwasm_std::{CanonicalAddr, Deps, MessageInfo, Order, StdError, StdResult, Uint128};
 use std::ops::AddAssign;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -49,7 +49,9 @@ pub fn assert_sent_native_token_balance(info: &MessageInfo, fee: Uint128) -> Std
             if fee.is_zero() {
                 Ok(())
             } else {
-                Err(StdError::generic_err("UST native token balance sent to low"))
+                Err(StdError::generic_err(
+                    "UST native token balance sent to low",
+                ))
             }
         }
     }
@@ -57,12 +59,8 @@ pub fn assert_sent_native_token_balance(info: &MessageInfo, fee: Uint128) -> Std
 
 pub fn get_sent_native_token_amount(info: &MessageInfo) -> Uint128 {
     match info.funds.iter().find(|x| x.denom == "uusd".to_string()) {
-        Some(coin) => {
-            coin.amount
-        }
-        None => {
-            Uint128::zero()
-        }
+        Some(coin) => coin.amount,
+        None => Uint128::zero(),
     }
 }
 
@@ -70,7 +68,8 @@ pub fn convert_human_to_raw(
     deps: Deps,
     contracts_addresses: &Vec<String>,
 ) -> StdResult<Vec<CanonicalAddr>> {
-    contracts_addresses.iter()
+    contracts_addresses
+        .iter()
         .map(|contract| -> StdResult<CanonicalAddr> {
             let canonical = deps.api.addr_canonicalize(&contract);
             if canonical.is_err() {
@@ -81,11 +80,9 @@ pub fn convert_human_to_raw(
         .collect::<StdResult<Vec<CanonicalAddr>>>()
 }
 
-pub fn convert_raw_to_human(
-    deps: Deps,
-    addresses: &Vec<CanonicalAddr>,
-) -> StdResult<Vec<String>> {
-    addresses.iter()
+pub fn convert_raw_to_human(deps: Deps, addresses: &Vec<CanonicalAddr>) -> StdResult<Vec<String>> {
+    addresses
+        .iter()
         .map(|addr| -> StdResult<String> {
             let human_addr = deps.api.addr_humanize(&addr);
             if human_addr.is_err() {
@@ -95,4 +92,3 @@ pub fn convert_raw_to_human(
         })
         .collect::<StdResult<Vec<String>>>()
 }
-

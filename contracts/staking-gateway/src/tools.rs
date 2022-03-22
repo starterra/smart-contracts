@@ -1,9 +1,9 @@
 use starterra_token::staking::StakerInfoResponse;
 
-use crate::querier::load_user_staking_status;
-use crate::state::{Config, read_config};
 use crate::errors::ContractError;
-use cosmwasm_std::{Deps, Uint128, StdResult, StdError};
+use crate::querier::load_user_staking_status;
+use crate::state::{read_config, Config};
+use cosmwasm_std::{Deps, StdError, StdResult, Uint128};
 
 pub fn fetch_staking_statuses(
     deps: Deps,
@@ -12,14 +12,20 @@ pub fn fetch_staking_statuses(
     let config: Config = read_config(deps.storage)?;
     let raw_addr = deps.api.addr_canonicalize(account_addr)?;
 
-    config.staking_contracts.iter().map(|contract_addr| {
-        load_user_staking_status(deps, &deps.api.addr_humanize(contract_addr)?.into_string(), &raw_addr)
-    }).collect::<StdResult<Vec<(String, StakerInfoResponse)>>>()
+    config
+        .staking_contracts
+        .iter()
+        .map(|contract_addr| {
+            load_user_staking_status(
+                deps,
+                &deps.api.addr_humanize(contract_addr)?.into_string(),
+                &raw_addr,
+            )
+        })
+        .collect::<StdResult<Vec<(String, StakerInfoResponse)>>>()
 }
 
-pub fn is_user_staking(
-    staking_statuses: &Vec<(String, StakerInfoResponse)>,
-) -> bool {
+pub fn is_user_staking(staking_statuses: &Vec<(String, StakerInfoResponse)>) -> bool {
     for status in staking_statuses {
         if status.1.bond_amount != Uint128::zero() {
             return true;
@@ -48,10 +54,11 @@ pub fn get_staking_amount(
     return Ok((contract_addr, staking_amount));
 }
 
-pub fn assert_staking_contracts_len(staking_contracts: &Vec<String>) -> StdResult<()>
-{
+pub fn assert_staking_contracts_len(staking_contracts: &Vec<String>) -> StdResult<()> {
     if staking_contracts.len() > 5 {
-        return Err(StdError::generic_err("Maximum number of staking contracts is 5"));
+        return Err(StdError::generic_err(
+            "Maximum number of staking contracts is 5",
+        ));
     }
     Ok(())
 }

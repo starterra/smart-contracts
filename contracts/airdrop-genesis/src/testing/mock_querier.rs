@@ -1,11 +1,14 @@
+use crate::testing::mock_querier::QueryMsgMock::{FunderInfo, StakerInfo};
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
-use cosmwasm_std::{from_slice, to_binary, Coin, Empty, Querier, QuerierResult, QueryRequest, SystemError, WasmQuery, OwnedDeps, SystemResult, ContractResult, from_binary};
-use std::collections::HashMap;
-use crate::testing::mock_querier::QueryMsgMock::{StakerInfo, FunderInfo};
-use starterra_token::staking::StakerInfoResponse;
-use starterra_token::ido::ParticipantResponse;
+use cosmwasm_std::{
+    from_binary, from_slice, to_binary, Coin, ContractResult, Empty, OwnedDeps, Querier,
+    QuerierResult, QueryRequest, SystemError, SystemResult, WasmQuery,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use starterra_token::ido::ParticipantResponse;
+use starterra_token::staking::StakerInfoResponse;
+use std::collections::HashMap;
 
 /// mock_dependencies is a drop-in replacement for cosmwasm_std::testing::mock_dependencies
 /// this uses our CustomQuerier.
@@ -97,7 +100,7 @@ impl WasmMockQuerier {
                 match msg {
                     StakerInfo {
                         staker: address,
-                        block_time: _none
+                        block_time: _none,
                     } => {
                         let staking_information: &HashMap<String, StakerInfoResponse> =
                             match self.token_querier.staker_info.get(contract_addr) {
@@ -134,9 +137,7 @@ impl WasmMockQuerier {
                             submit_to_unbond_info: None,
                         })))
                     }
-                    FunderInfo {
-                        address
-                    } => {
+                    FunderInfo { address } => {
                         let funders_information: &HashMap<String, ParticipantResponse> =
                             match self.token_querier.ido_participant_info.get(contract_addr) {
                                 Some(funder_info) => funder_info,

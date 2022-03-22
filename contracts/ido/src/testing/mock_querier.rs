@@ -1,13 +1,16 @@
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
-use cosmwasm_std::{from_slice, to_binary, Coin, Empty, Querier, QuerierResult, QueryRequest, SystemError, WasmQuery, from_binary, SystemResult, ContractResult, OwnedDeps, Uint128};
+use cosmwasm_std::{
+    from_binary, from_slice, to_binary, Coin, ContractResult, Empty, OwnedDeps, Querier,
+    QuerierResult, QueryRequest, SystemError, SystemResult, Uint128, WasmQuery,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use std::collections::HashMap;
-use starterra_token::ido_prefund::FunderInfoResponse;
-use starterra_token::kyc_vault::{IsAcceptedVerifiedResponse};
-use std::ops::Deref;
 use crate::testing::mock_querier::QueryMsgMock::{FunderInfo, IsAcceptedVerified};
+use starterra_token::ido_prefund::FunderInfoResponse;
+use starterra_token::kyc_vault::IsAcceptedVerifiedResponse;
+use std::collections::HashMap;
+use std::ops::Deref;
 
 /// mock_dependencies is a drop-in replacement for cosmwasm_std::testing::mock_dependencies
 /// this uses our CustomQuerier.
@@ -24,7 +27,6 @@ pub fn mock_dependencies(
         querier: custom_querier,
     }
 }
-
 
 pub struct WasmMockQuerier {
     base: MockQuerier<Empty>,
@@ -68,15 +70,19 @@ pub(crate) fn account_info_to_map(
 pub(crate) fn account_info_to_terms_map(
     account_info: Vec<(String, Vec<(String, (bool, bool))>)>,
 ) -> HashMap<String, HashMap<String, IsAcceptedVerifiedResponse>> {
-    let mut account_info_map: HashMap<String, HashMap<String, IsAcceptedVerifiedResponse>> = HashMap::new();
+    let mut account_info_map: HashMap<String, HashMap<String, IsAcceptedVerifiedResponse>> =
+        HashMap::new();
     for (contract_addr, account_info) in account_info.iter() {
         let mut contract_balances_map: HashMap<String, IsAcceptedVerifiedResponse> = HashMap::new();
         for (addr, info) in account_info.iter() {
-            contract_balances_map.insert(addr.clone(), IsAcceptedVerifiedResponse {
-                address: String::from(addr),
-                is_accepted: info.0,
-                is_verified: info.1,
-            });
+            contract_balances_map.insert(
+                addr.clone(),
+                IsAcceptedVerifiedResponse {
+                    address: String::from(addr),
+                    is_accepted: info.0,
+                    is_verified: info.1,
+                },
+            );
         }
 
         account_info_map.insert(contract_addr.clone(), contract_balances_map);
@@ -103,12 +109,8 @@ impl Querier for WasmMockQuerier {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsgMock {
-    IsAcceptedVerified {
-        address: String,
-    },
-    FunderInfo {
-        address: String,
-    },
+    IsAcceptedVerified { address: String },
+    FunderInfo { address: String },
     Config {},
 }
 
@@ -123,20 +125,32 @@ impl WasmMockQuerier {
                             available_funds: Uint128::zero(),
                             spent_funds: Uint128::zero(),
                         };
-                        let map_for_contract = self.token_querier.account_info.get(contract_addr.clone().as_str()).unwrap();
-                        let resp = map_for_contract.get(address.as_str()).unwrap_or_else(|| &funder_info_response);
+                        let map_for_contract = self
+                            .token_querier
+                            .account_info
+                            .get(contract_addr.clone().as_str())
+                            .unwrap();
+                        let resp = map_for_contract
+                            .get(address.as_str())
+                            .unwrap_or_else(|| &funder_info_response);
                         SystemResult::Ok(ContractResult::from(to_binary(&resp)))
-                    },
+                    }
                     IsAcceptedVerified { address } => {
                         let is_accepted_response = &IsAcceptedVerifiedResponse {
                             address: address.clone(),
                             is_accepted: false,
                             is_verified: false,
                         };
-                        let map_for_contract = self.token_querier.kyc_info.get(contract_addr.clone().as_str()).unwrap();
-                        let resp = map_for_contract.get(address.as_str()).unwrap_or_else(|| &is_accepted_response);
+                        let map_for_contract = self
+                            .token_querier
+                            .kyc_info
+                            .get(contract_addr.clone().as_str())
+                            .unwrap();
+                        let resp = map_for_contract
+                            .get(address.as_str())
+                            .unwrap_or_else(|| &is_accepted_response);
                         SystemResult::Ok(ContractResult::from(to_binary(&resp)))
-                    },
+                    }
 
                     _ => self.base.handle_query(request),
                 }

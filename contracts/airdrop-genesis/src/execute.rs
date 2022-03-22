@@ -1,18 +1,23 @@
-use cosmwasm_std::{BankMsg, CosmosMsg, DepsMut, Env, MessageInfo, Response, to_binary, Uint128, WasmMsg};
+use cosmwasm_std::{
+    to_binary, BankMsg, CosmosMsg, DepsMut, Env, MessageInfo, Response, Uint128, WasmMsg,
+};
 use cw20::Cw20ExecuteMsg;
 
 use starterra_token::airdrop_genesis::{AirdropAccount, AirdropInfo};
 
 use crate::errors::ContractError;
 use crate::querier::load_token_balance;
-use crate::state::{Config, read_airdrop_info, read_config, store_airdrop_info, store_config, read_pending_owner, remove_pending_owner, store_pending_owner};
-use crate::tools::{fetch_user_possible_claim, get_ust_withdraw_coin, convert_human_to_raw, assert_sent_native_token_balance};
+use crate::state::{
+    read_airdrop_info, read_config, read_pending_owner, remove_pending_owner, store_airdrop_info,
+    store_config, store_pending_owner, Config,
+};
+use crate::tools::{
+    assert_sent_native_token_balance, convert_human_to_raw, fetch_user_possible_claim,
+    get_ust_withdraw_coin,
+};
 use std::borrow::BorrowMut;
 
-pub fn claim(
-    deps: DepsMut,
-    info: MessageInfo,
-) -> Result<Response, ContractError> {
+pub fn claim(deps: DepsMut, info: MessageInfo) -> Result<Response, ContractError> {
     let config: Config = read_config(deps.storage)?;
     let user_raw = deps.api.addr_canonicalize(info.sender.as_str())?;
     assert_sent_native_token_balance(&info.clone(), config.claim_fee)?;
@@ -22,7 +27,8 @@ pub fn claim(
     if airdrop_info.already_claimed >= airdrop_info.amount {
         return Err(ContractError::AlreadyClaimed {});
     }
-    let current_possible_claim = fetch_user_possible_claim(deps.as_ref(), &user_raw, airdrop_info.amount)?;
+    let current_possible_claim =
+        fetch_user_possible_claim(deps.as_ref(), &user_raw, airdrop_info.amount)?;
     if current_possible_claim <= airdrop_info.already_claimed {
         return Err(ContractError::DoMoreTasks {});
     }
@@ -33,13 +39,17 @@ pub fn claim(
         &AirdropInfo {
             amount: airdrop_info.amount,
             already_claimed: current_possible_claim,
-        })?;
+        },
+    )?;
 
     let transfer_amount = current_possible_claim - airdrop_info.already_claimed;
 
     Ok(Response::new()
         .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: deps.api.addr_humanize(&config.starterra_token)?.into_string(),
+            contract_addr: deps
+                .api
+                .addr_humanize(&config.starterra_token)?
+                .into_string(),
             funds: vec![],
             msg: to_binary(&Cw20ExecuteMsg::Transfer {
                 recipient: info.sender.clone().into_string(),
@@ -48,31 +58,23 @@ pub fn claim(
         }))
         .add_attribute("action", "claim")
         .add_attribute("address", info.sender)
-        .add_attribute("amount", transfer_amount)
-    )
+        .add_attribute("amount", transfer_amount))
 }
 
-pub fn ust_withdraw(
-    deps: DepsMut,
-    env: Env,
-    to: String,
-) -> Result<Response, ContractError> {
+pub fn ust_withdraw(deps: DepsMut, env: Env, to: String) -> Result<Response, ContractError> {
     let ust_withdraw_coin = get_ust_withdraw_coin(deps.as_ref(), env)?;
     if ust_withdraw_coin.amount == Uint128::zero() {
         return Err(ContractError::BalanceIsEmpty {});
     }
 
     Ok(Response::new()
-        .add_message(CosmosMsg::Bank(
-            BankMsg::Send {
-                to_address: to.clone(),
-                amount: vec![ust_withdraw_coin.clone()],
-            },
-        ))
+        .add_message(CosmosMsg::Bank(BankMsg::Send {
+            to_address: to.clone(),
+            amount: vec![ust_withdraw_coin.clone()],
+        }))
         .add_attribute("action", "ust_withdraw")
         .add_attribute("recipient", to)
-        .add_attribute("ust_withdraw_amount", ust_withdraw_coin.amount)
-    )
+        .add_attribute("ust_withdraw_amount", ust_withdraw_coin.amount))
 }
 
 pub fn emergency_withdraw(
@@ -84,24 +86,23 @@ pub fn emergency_withdraw(
     let config: Config = read_config(deps.storage)?;
     let ust_withdraw_coin = get_ust_withdraw_coin(deps.as_ref(), env)?;
 
-    let mut messages = vec![
-        CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: deps.api.addr_humanize(&config.starterra_token)?.into_string(),
-            funds: vec![],
-            msg: to_binary(&Cw20ExecuteMsg::Transfer {
-                recipient: to.clone(),
-                amount,
-            })?,
-        }),
-    ];
+    let mut messages = vec![CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: deps
+            .api
+            .addr_humanize(&config.starterra_token)?
+            .into_string(),
+        funds: vec![],
+        msg: to_binary(&Cw20ExecuteMsg::Transfer {
+            recipient: to.clone(),
+            amount,
+        })?,
+    })];
 
     if ust_withdraw_coin.amount > Uint128::zero() {
-        messages.push(CosmosMsg::Bank(
-            BankMsg::Send {
-                to_address: to.clone(),
-                amount: vec![ust_withdraw_coin.clone()],
-            },
-        ))
+        messages.push(CosmosMsg::Bank(BankMsg::Send {
+            to_address: to.clone(),
+            amount: vec![ust_withdraw_coin.clone()],
+        }))
     }
 
     Ok(Response::new()
@@ -109,14 +110,10 @@ pub fn emergency_withdraw(
         .add_attribute("action", "emergency_withdraw")
         .add_attribute("recipient", to)
         .add_attribute("claim_amount", amount)
-        .add_attribute("claim_ust_amount", ust_withdraw_coin.amount)
-    )
+        .add_attribute("claim_ust_amount", ust_withdraw_coin.amount))
 }
 
-pub fn accept_ownership(
-    deps: DepsMut,
-    info: MessageInfo,
-) -> Result<Response, ContractError> {
+pub fn accept_ownership(deps: DepsMut, info: MessageInfo) -> Result<Response, ContractError> {
     match read_pending_owner(deps.storage) {
         None => {
             return Err(ContractError::PendingOwnerMissing {});
@@ -170,37 +167,36 @@ pub fn update_config(
     }
 
     store_config(deps.storage, &config)?;
-    Ok(Response::new()
-        .add_attribute("action", "update_config")
-    )
+    Ok(Response::new().add_attribute("action", "update_config"))
 }
 
-pub fn end_airdrop_genesis(
-    deps: DepsMut,
-    env: Env,
-) -> Result<Response, ContractError> {
+pub fn end_airdrop_genesis(deps: DepsMut, env: Env) -> Result<Response, ContractError> {
     let config: Config = read_config(deps.storage)?;
     let ust_withdraw_coin = get_ust_withdraw_coin(deps.as_ref(), env.clone())?;
     let mut messages: Vec<CosmosMsg> = if ust_withdraw_coin.amount > Uint128::zero() {
-        vec![CosmosMsg::Bank(
-            BankMsg::Send {
-                to_address: deps.api.addr_humanize(&config.owner)?.into_string(),
-                amount: vec![ust_withdraw_coin.clone()],
-            },
-        )]
+        vec![CosmosMsg::Bank(BankMsg::Send {
+            to_address: deps.api.addr_humanize(&config.owner)?.into_string(),
+            amount: vec![ust_withdraw_coin.clone()],
+        })]
     } else {
         [].to_vec()
     };
 
     let token_balance = load_token_balance(
         deps.as_ref(),
-        &deps.api.addr_humanize(&config.starterra_token)?.into_string(),
+        &deps
+            .api
+            .addr_humanize(&config.starterra_token)?
+            .into_string(),
         &deps.api.addr_canonicalize(&env.contract.address.as_str())?,
     )?;
 
     if !token_balance.is_zero() {
         messages.push(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: deps.api.addr_humanize(&config.starterra_token)?.into_string(),
+            contract_addr: deps
+                .api
+                .addr_humanize(&config.starterra_token)?
+                .into_string(),
             funds: vec![],
             msg: to_binary(&Cw20ExecuteMsg::Burn {
                 amount: token_balance,
@@ -212,8 +208,7 @@ pub fn end_airdrop_genesis(
         .add_messages(messages)
         .add_attribute("action", "end_airdrop_genesis")
         .add_attribute("burned_tokens_number", token_balance)
-        .add_attribute("ust_withdraw_amount", ust_withdraw_coin.amount)
-    )
+        .add_attribute("ust_withdraw_amount", ust_withdraw_coin.amount))
 }
 
 pub fn register_airdrop_accounts(
@@ -232,9 +227,5 @@ pub fn register_airdrop_accounts(
         )?;
     }
 
-    Ok(Response::new()
-        .add_attribute("action", "register_airdrop_accounts")
-    )
+    Ok(Response::new().add_attribute("action", "register_airdrop_accounts"))
 }
-
-

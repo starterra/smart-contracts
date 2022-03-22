@@ -1,8 +1,10 @@
-use crate::contract::{instantiate, query, execute};
-use starterra_token::vesting_gateway::{ConfigResponse, InstantiateMsg, QueryMsg, ExecuteMsg, VestingAddressesResponse};
-use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-use cosmwasm_std::{from_binary, attr};
+use crate::contract::{execute, instantiate, query};
 use crate::errors::ContractError;
+use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+use cosmwasm_std::{attr, from_binary};
+use starterra_token::vesting_gateway::{
+    ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, VestingAddressesResponse,
+};
 
 #[test]
 fn proper_initialization() {
@@ -155,17 +157,10 @@ fn register_vesting_addresses() {
     let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
     assert_eq!(
         res.attributes,
-        vec![
-            attr("action", "update_vesting_addresses"),
-        ]
+        vec![attr("action", "update_vesting_addresses"),]
     );
 
-    let res = query(
-        deps.as_ref(),
-        env.clone(),
-        QueryMsg::VestingAddresses {},
-    )
-        .unwrap();
+    let res = query(deps.as_ref(), env.clone(), QueryMsg::VestingAddresses {}).unwrap();
     let vesting_addresses: VestingAddressesResponse = from_binary(&res).unwrap();
     assert_eq!(
         vec![String::from("vestingAddr1"), String::from("vestingAddr2")],
@@ -193,7 +188,7 @@ fn try_register_too_many_vesting_addresses() {
             String::from("vestingAddr4"),
             String::from("vestingAddr5"),
             String::from("vestingAddr6"),
-            String::from("vestingAddr7")
+            String::from("vestingAddr7"),
         ],
     };
 
@@ -210,7 +205,9 @@ fn try_register_too_many_vesting_addresses() {
     let info = mock_info("owner", &[]);
     let res = execute(deps.as_mut(), env, info, msg);
     match res {
-        Err(ContractError::CannotHaveMoreVestingAddresses { max }) => { assert_eq!(max, 6) },
+        Err(ContractError::CannotHaveMoreVestingAddresses { max }) => {
+            assert_eq!(max, 6)
+        }
         _ => panic!("Should throw error: Too many vesting addresses (max 6)"),
     }
 }
@@ -245,17 +242,10 @@ fn add_vesting_address() {
     let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
     assert_eq!(
         res.attributes,
-        vec![
-            attr("action", "update_vesting_addresses"),
-        ]
+        vec![attr("action", "update_vesting_addresses"),]
     );
 
-    let res = query(
-        deps.as_ref(),
-        env.clone(),
-        QueryMsg::VestingAddresses {},
-    )
-        .unwrap();
+    let res = query(deps.as_ref(), env.clone(), QueryMsg::VestingAddresses {}).unwrap();
     let vesting_addresses: VestingAddressesResponse = from_binary(&res).unwrap();
     assert_eq!(
         vec![String::from("vestingAddr1"), String::from("vestingAddr2")],
@@ -278,15 +268,14 @@ fn add_vesting_address() {
         ]
     );
 
-    let res = query(
-        deps.as_ref(),
-        env.clone(),
-        QueryMsg::VestingAddresses {},
-    )
-        .unwrap();
+    let res = query(deps.as_ref(), env.clone(), QueryMsg::VestingAddresses {}).unwrap();
     let vesting_addresses: VestingAddressesResponse = from_binary(&res).unwrap();
     assert_eq!(
-        vec![String::from("vestingAddr1"), String::from("vestingAddr2"), String::from("vestingAddr3")],
+        vec![
+            String::from("vestingAddr1"),
+            String::from("vestingAddr2"),
+            String::from("vestingAddr3")
+        ],
         vesting_addresses.vesting_addresses
     );
 }
@@ -312,17 +301,10 @@ fn add_duplicated_vesting_address() {
     let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
     assert_eq!(
         res.attributes,
-        vec![
-            attr("action", "update_vesting_addresses"),
-        ]
+        vec![attr("action", "update_vesting_addresses"),]
     );
 
-    let res = query(
-        deps.as_ref(),
-        env.clone(),
-        QueryMsg::VestingAddresses {},
-    )
-        .unwrap();
+    let res = query(deps.as_ref(), env.clone(), QueryMsg::VestingAddresses {}).unwrap();
     let vesting_addresses: VestingAddressesResponse = from_binary(&res).unwrap();
     assert_eq!(
         vec![String::from("vestingAddr1"), String::from("vestingAddr2")],
@@ -364,7 +346,7 @@ fn try_add_seventh_vesting_address() {
             String::from("vestingAddr3"),
             String::from("vestingAddr4"),
             String::from("vestingAddr5"),
-            String::from("vestingAddr6")
+            String::from("vestingAddr6"),
         ],
     };
 
@@ -407,17 +389,10 @@ fn remove_vesting_address() {
     let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
     assert_eq!(
         res.attributes,
-        vec![
-            attr("action", "update_vesting_addresses"),
-        ]
+        vec![attr("action", "update_vesting_addresses"),]
     );
 
-    let res = query(
-        deps.as_ref(),
-        env.clone(),
-        QueryMsg::VestingAddresses {},
-    )
-        .unwrap();
+    let res = query(deps.as_ref(), env.clone(), QueryMsg::VestingAddresses {}).unwrap();
     let vesting_addresses: VestingAddressesResponse = from_binary(&res).unwrap();
     assert_eq!(
         vec![String::from("vestingAddr1"), String::from("vestingAddr2")],
@@ -449,12 +424,7 @@ fn remove_vesting_address() {
         ]
     );
 
-    let res = query(
-        deps.as_ref(),
-        env.clone(),
-        QueryMsg::VestingAddresses {},
-    )
-        .unwrap();
+    let res = query(deps.as_ref(), env.clone(), QueryMsg::VestingAddresses {}).unwrap();
     let vesting_addresses: VestingAddressesResponse = from_binary(&res).unwrap();
     assert_eq!(
         vec![String::from("vestingAddr1")],
@@ -483,17 +453,10 @@ fn remove_not_existing_vesting_address() {
     let res = execute(deps.as_mut(), env.clone(), info, msg).unwrap();
     assert_eq!(
         res.attributes,
-        vec![
-            attr("action", "update_vesting_addresses"),
-        ]
+        vec![attr("action", "update_vesting_addresses"),]
     );
 
-    let res = query(
-        deps.as_ref(),
-        env.clone(),
-        QueryMsg::VestingAddresses {},
-    )
-        .unwrap();
+    let res = query(deps.as_ref(), env.clone(), QueryMsg::VestingAddresses {}).unwrap();
     let vesting_addresses: VestingAddressesResponse = from_binary(&res).unwrap();
     assert_eq!(
         vec![String::from("vestingAddr1"), String::from("vestingAddr2")],
@@ -509,7 +472,7 @@ fn remove_not_existing_vesting_address() {
     let info = mock_info("owner", &[]);
     let res = execute(deps.as_mut(), env, info, msg);
     match res {
-        Err(ContractError::AddressNotRegistered {}) => {},
+        Err(ContractError::AddressNotRegistered {}) => {}
         _ => panic!("DO NOT ENTER HERE"),
     }
 }

@@ -1,10 +1,10 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::{StdResult, Storage, Uint128, CanonicalAddr};
+use cosmwasm_std::{CanonicalAddr, StdResult, Storage, Uint128};
 use cosmwasm_storage::{singleton, singleton_read, Bucket, ReadonlyBucket};
-use starterra_token::ido::{ParticipantInfoResponse, ParticipantResponse};
 use starterra_token::common::OrderBy;
+use starterra_token::ido::{ParticipantInfoResponse, ParticipantResponse};
 
 static KEY_CONFIG: &[u8] = b"config";
 static KEY_STATE: &[u8] = b"state";
@@ -52,14 +52,10 @@ pub fn store_ido_participant(
     address: &CanonicalAddr,
     participant_info: &ParticipantInfoResponse,
 ) -> StdResult<()> {
-    Ok(Bucket::new(storage, PREFIX_KEY_IDO_PARTICIPANT)
-        .save(address, participant_info)?)
+    Ok(Bucket::new(storage, PREFIX_KEY_IDO_PARTICIPANT).save(address, participant_info)?)
 }
 
-pub fn remove_ido_participant(
-    storage: &mut dyn Storage,
-    address: &CanonicalAddr,
-) {
+pub fn remove_ido_participant(storage: &mut dyn Storage, address: &CanonicalAddr) {
     Bucket::<ParticipantInfoResponse>::new(storage, PREFIX_KEY_IDO_PARTICIPANT).remove(address)
 }
 
@@ -75,8 +71,10 @@ pub fn store_participant(
     address: &CanonicalAddr,
     participant_info: &ParticipantResponse,
 ) -> StdResult<()> {
-    Ok(Bucket::<ParticipantResponse>::new(storage, PREFIX_KEY_PARTICIPANT)
-        .save(address, participant_info)?)
+    Ok(
+        Bucket::<ParticipantResponse>::new(storage, PREFIX_KEY_PARTICIPANT)
+            .save(address, participant_info)?,
+    )
 }
 
 pub fn read_participant(
@@ -85,12 +83,9 @@ pub fn read_participant(
 ) -> StdResult<ParticipantResponse> {
     match ReadonlyBucket::new(storage, PREFIX_KEY_PARTICIPANT).may_load(address)? {
         Some(found) => Ok(found),
-        None => Ok(ParticipantResponse {
-            is_joined: false,
-        }),
+        None => Ok(ParticipantResponse { is_joined: false }),
     }
 }
-
 
 const DEFAULT_LIMIT: u32 = 1024;
 pub fn read_participants(

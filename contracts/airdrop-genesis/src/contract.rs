@@ -1,14 +1,17 @@
-use cosmwasm_std::{Binary, Env, StdResult, to_binary, MessageInfo, DepsMut, Deps, Response};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 use starterra_token::airdrop_genesis::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
-use crate::execute::{claim, emergency_withdraw, end_airdrop_genesis, register_airdrop_accounts, update_config, ust_withdraw, accept_ownership};
-use crate::queries::{query_config, query_user_info};
-use crate::state::{Config, store_config};
-use crate::tools::{assert_owner_privilege, convert_human_to_raw};
 use crate::errors::ContractError;
+use crate::execute::{
+    accept_ownership, claim, emergency_withdraw, end_airdrop_genesis, register_airdrop_accounts,
+    update_config, ust_withdraw,
+};
+use crate::queries::{query_config, query_user_info};
+use crate::state::{store_config, Config};
+use crate::tools::{assert_owner_privilege, convert_human_to_raw};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -32,7 +35,6 @@ pub fn instantiate(
         },
     )?;
 
-
     Ok(Response::new())
 }
 
@@ -45,9 +47,7 @@ pub fn execute(
 ) -> Result<Response, ContractError> {
     match msg.clone() {
         ExecuteMsg::Claim {} => claim(deps, info),
-        ExecuteMsg::AcceptOwnership {} => {
-            accept_ownership(deps, info)
-        },
+        ExecuteMsg::AcceptOwnership {} => accept_ownership(deps, info),
         _ => {
             assert_owner_privilege(deps.as_ref(), info.clone())?;
             match msg {
@@ -56,15 +56,21 @@ pub fn execute(
                     lp_staking_addresses,
                     stt_staking_addresses,
                     ido_addresses,
-                    claim_fee
-                } => update_config(deps, env, owner, lp_staking_addresses, stt_staking_addresses, ido_addresses, claim_fee),
+                    claim_fee,
+                } => update_config(
+                    deps,
+                    env,
+                    owner,
+                    lp_staking_addresses,
+                    stt_staking_addresses,
+                    ido_addresses,
+                    claim_fee,
+                ),
                 ExecuteMsg::EndGenesisAirdrop {} => end_airdrop_genesis(deps, env),
                 ExecuteMsg::RegisterAirdropAccounts { airdrop_accounts } => {
                     register_airdrop_accounts(deps, &airdrop_accounts)
                 }
-                ExecuteMsg::UstWithdraw { to } => {
-                    ust_withdraw(deps, env, to)
-                }
+                ExecuteMsg::UstWithdraw { to } => ust_withdraw(deps, env, to),
                 ExecuteMsg::EmergencyWithdraw { amount, to } => {
                     emergency_withdraw(deps, env, amount, to)
                 }
@@ -75,24 +81,14 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(
-    deps: Deps,
-    _env: Env,
-    msg: QueryMsg,
-) -> Result<Binary, ContractError> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
     match msg {
         QueryMsg::Config {} => Ok(to_binary(&query_config(deps)?)?),
-        QueryMsg::UserInfo { address } => {
-            Ok(to_binary(&query_user_info(deps, address)?)?)
-        }
+        QueryMsg::UserInfo { address } => Ok(to_binary(&query_user_info(deps, address)?)?),
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(
-    _deps: DepsMut,
-    _env: Env,
-    _msg: MigrateMsg,
-) -> StdResult<Response> {
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     Ok(Response::default())
 }

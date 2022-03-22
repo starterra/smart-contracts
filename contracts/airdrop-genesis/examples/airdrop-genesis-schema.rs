@@ -3,7 +3,10 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use starterra_token::airdrop_genesis::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, AirdropUserInfoResponse, AirdropAccount, AirdropInfo};
+use starterra_token::airdrop_genesis::{
+    AirdropAccount, AirdropInfo, AirdropUserInfoResponse, ConfigResponse, ExecuteMsg,
+    InstantiateMsg, QueryMsg,
+};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

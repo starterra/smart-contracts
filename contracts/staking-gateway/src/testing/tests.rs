@@ -1,12 +1,15 @@
-use cosmwasm_std::{from_binary, Uint128, Timestamp, attr};
 use cosmwasm_std::testing::{mock_env, mock_info};
+use cosmwasm_std::{attr, from_binary, Timestamp, Uint128};
 
-use starterra_token::staking_gateway::{CanStakeResponse, CanStakeStatus, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, BondAmountResponse};
 use starterra_token::staking::StakerInfo;
+use starterra_token::staking_gateway::{
+    BondAmountResponse, CanStakeResponse, CanStakeStatus, ConfigResponse, ExecuteMsg,
+    InstantiateMsg, QueryMsg,
+};
 
 use crate::contract::{execute, instantiate, query};
-use crate::testing::mock_querier::mock_dependencies;
 use crate::errors::ContractError;
+use crate::testing::mock_querier::mock_dependencies;
 
 #[test]
 fn proper_initialization() {
@@ -70,7 +73,10 @@ fn update_config() {
     // Unauthorized err
     let env = mock_env();
     let info = mock_info("owner0000", &[]);
-    let msg = ExecuteMsg::UpdateConfig { owner: None, staking_contracts: None };
+    let msg = ExecuteMsg::UpdateConfig {
+        owner: None,
+        staking_contracts: None,
+    };
 
     let res = execute(deps.as_mut(), env.clone(), info, msg);
     match res {
@@ -131,7 +137,7 @@ fn accept_ownership() {
 
     let msg = ExecuteMsg::UpdateConfig {
         owner: Some(String::from("new_owner")),
-        staking_contracts: None
+        staking_contracts: None,
     };
     let info = mock_info("owner0000", &vec![]);
     let env = mock_env();
@@ -167,27 +173,52 @@ fn test_querier() {
     let info = mock_info("addr0000", &[]);
     let msg = InstantiateMsg {
         owner: String::from("owner0000"),
-        staking_contracts: vec![String::from("staking0000"), String::from("staking0001"), String::from("staking0002")],
+        staking_contracts: vec![
+            String::from("staking0000"),
+            String::from("staking0001"),
+            String::from("staking0002"),
+        ],
     };
     let _res = instantiate(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
 
     // User no staking at all
-    let res = query(deps.as_ref(), env.clone(), QueryMsg::CanUserStake {
-        user: String::from("user0000"),
-    }).unwrap();
+    let res = query(
+        deps.as_ref(),
+        env.clone(),
+        QueryMsg::CanUserStake {
+            user: String::from("user0000"),
+        },
+    )
+    .unwrap();
     let can_stake: CanStakeResponse = from_binary(&res).unwrap();
     assert_eq!(
         can_stake,
         CanStakeResponse {
-            statuses: vec![CanStakeStatus { staking_contract: String::from("staking0000"), can_stake: true },
-                           CanStakeStatus { staking_contract: String::from("staking0001"), can_stake: true },
-                           CanStakeStatus { staking_contract: String::from("staking0002"), can_stake: true }],
+            statuses: vec![
+                CanStakeStatus {
+                    staking_contract: String::from("staking0000"),
+                    can_stake: true
+                },
+                CanStakeStatus {
+                    staking_contract: String::from("staking0001"),
+                    can_stake: true
+                },
+                CanStakeStatus {
+                    staking_contract: String::from("staking0002"),
+                    can_stake: true
+                }
+            ],
         }
     );
 
-    let res = query(deps.as_ref(), env.clone(), QueryMsg::BondAmount {
-        user: String::from("user0000"),
-    }).unwrap();
+    let res = query(
+        deps.as_ref(),
+        env.clone(),
+        QueryMsg::BondAmount {
+            user: String::from("user0000"),
+        },
+    )
+    .unwrap();
     let bond_amount: BondAmountResponse = from_binary(&res).unwrap();
     assert_eq!(
         bond_amount,
@@ -207,26 +238,47 @@ fn test_querier() {
                 reward_index: Default::default(),
                 bond_amount: Uint128::from(100u64),
                 pending_reward: Default::default(),
-            }
+            },
         )],
     )]);
 
-    let res = query(deps.as_ref(), env.clone(), QueryMsg::CanUserStake {
-        user: String::from("user0000"),
-    }).unwrap();
+    let res = query(
+        deps.as_ref(),
+        env.clone(),
+        QueryMsg::CanUserStake {
+            user: String::from("user0000"),
+        },
+    )
+    .unwrap();
     let can_stake: CanStakeResponse = from_binary(&res).unwrap();
     assert_eq!(
         can_stake,
         CanStakeResponse {
-            statuses: vec![CanStakeStatus { staking_contract: String::from("staking0000"), can_stake: false },
-                           CanStakeStatus { staking_contract: String::from("staking0001"), can_stake: true },
-                           CanStakeStatus { staking_contract: String::from("staking0002"), can_stake: false }],
+            statuses: vec![
+                CanStakeStatus {
+                    staking_contract: String::from("staking0000"),
+                    can_stake: false
+                },
+                CanStakeStatus {
+                    staking_contract: String::from("staking0001"),
+                    can_stake: true
+                },
+                CanStakeStatus {
+                    staking_contract: String::from("staking0002"),
+                    can_stake: false
+                }
+            ],
         }
     );
 
-    let res = query(deps.as_ref(), env.clone(), QueryMsg::BondAmount {
-        user: String::from("user0000"),
-    }).unwrap();
+    let res = query(
+        deps.as_ref(),
+        env.clone(),
+        QueryMsg::BondAmount {
+            user: String::from("user0000"),
+        },
+    )
+    .unwrap();
     let bond_amount: BondAmountResponse = from_binary(&res).unwrap();
     assert_eq!(
         bond_amount,
@@ -238,42 +290,52 @@ fn test_querier() {
     );
 
     // User is staking in multiple contracts - error
-    deps.querier.with_staker_info(vec![(
-        String::from("staking0001"),
-        vec![(
-            String::from("user0000"),
-            StakerInfo {
-                reward_index: Default::default(),
-                bond_amount: Uint128::from(100u64),
-                pending_reward: Default::default(),
-            }
-        )],
-    ), (
-        String::from("staking0002"),
-        vec![(
-            String::from("user0000"),
-            StakerInfo {
-                reward_index: Default::default(),
-                bond_amount: Uint128::from(125u64),
-                pending_reward: Default::default(),
-            }
-        )],
-    ),
+    deps.querier.with_staker_info(vec![
+        (
+            String::from("staking0001"),
+            vec![(
+                String::from("user0000"),
+                StakerInfo {
+                    reward_index: Default::default(),
+                    bond_amount: Uint128::from(100u64),
+                    pending_reward: Default::default(),
+                },
+            )],
+        ),
+        (
+            String::from("staking0002"),
+            vec![(
+                String::from("user0000"),
+                StakerInfo {
+                    reward_index: Default::default(),
+                    bond_amount: Uint128::from(125u64),
+                    pending_reward: Default::default(),
+                },
+            )],
+        ),
     ]);
 
-    let res = query(deps.as_ref(), env.clone(), QueryMsg::CanUserStake {
-        user: String::from("user0000"),
-    });
+    let res = query(
+        deps.as_ref(),
+        env.clone(),
+        QueryMsg::CanUserStake {
+            user: String::from("user0000"),
+        },
+    );
     match res {
-        Err(ContractError::CannotStakeInMoreThanOneContract {}) => {},
+        Err(ContractError::CannotStakeInMoreThanOneContract {}) => {}
         _ => panic!("WRONG ERROR MSG"),
     }
 
-    let res = query(deps.as_ref(), env.clone(), QueryMsg::BondAmount {
-        user: String::from("user0000"),
-    });
+    let res = query(
+        deps.as_ref(),
+        env.clone(),
+        QueryMsg::BondAmount {
+            user: String::from("user0000"),
+        },
+    );
     match res {
-        Err(ContractError::CannotStakeInMoreThanOneContract {}) => {},
+        Err(ContractError::CannotStakeInMoreThanOneContract {}) => {}
         _ => panic!("WRONG ERROR MSG"),
     }
 }
